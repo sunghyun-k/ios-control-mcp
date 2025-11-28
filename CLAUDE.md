@@ -39,17 +39,19 @@ import IOSControlClient
 
 let client = IOSControlClient()
 
-// 앱 목록 조회 (simctl 사용, 서버 불필요)
+// 앱 목록 조회
 let apps = try await client.listApps()
 print(apps.bundleIds)
 
-// 앱 실행 (서버 필요)
+// 앱 실행
 try await client.launchApp(bundleId: "com.apple.Preferences")
 ```
 
 ## 아키텍처 노트
 
-- `list_apps`는 simctl을 직접 호출하므로 SimulatorAgent 서버 없이 동작.
+- SimulatorAgent는 `SIMULATOR_UDID` 환경변수로 자신이 실행 중인 시뮬레이터 UDID를 알 수 있음.
+- `/status` 응답에 `udid` 필드가 포함되어 있어, 클라이언트가 정확한 시뮬레이터를 대상으로 simctl 명령 실행 가능.
+- `list_apps`는 Agent에서 UDID를 받아 `simctl listapps <udid>`로 호출.
 - 그 외 도구들(tap, swipe, screenshot 등)은 SimulatorAgent HTTP 서버를 통해 동작.
 
 ## Instructions
