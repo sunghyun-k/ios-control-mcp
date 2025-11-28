@@ -30,7 +30,7 @@ mcp: generate-version
 # MCP 서버 실행
 mcp-run: generate-version
 	@echo "Running MCP Server version $(VERSION)..."
-	IOS_CONTROL_AGENT_APP=$(AGENT_APP) swift run --package-path MCPServer --scratch-path $(BUILD_DIR)/MCPServer
+	IOS_CONTROL_AGENT_APP=$(AGENT_APP) swift run --package-path MCPServer --scratch-path $(BUILD_DIR)/MCPServer MCPServer
 
 # SimulatorAgent .app 빌드
 agent:
