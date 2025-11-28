@@ -56,3 +56,45 @@ public struct LaunchAppRequest: Codable, Sendable {
         self.bundleId = bundleId
     }
 }
+
+/// 앱 종료 요청
+public struct TerminateAppRequest: Codable, Sendable {
+    public let bundleId: String
+
+    public init(bundleId: String) {
+        self.bundleId = bundleId
+    }
+}
+
+/// URL 열기 요청
+public struct OpenURLRequest: Codable, Sendable {
+    public let url: String
+
+    public init(url: String) {
+        self.url = url
+    }
+}
+
+/// 클립보드 설정 요청
+public struct SetPasteboardRequest: Codable, Sendable {
+    public let content: String
+
+    public init(content: String) {
+        self.content = content
+    }
+}
+
+/// 핀치 요청
+public struct PinchRequest: Codable, Sendable {
+    public let x: Double
+    public let y: Double
+    public let scale: Double
+    public let velocity: Double
+
+    public init(x: Double, y: Double, scale: Double, velocity: Double = 1.0) {
+        self.x = x
+        self.y = y
+        self.scale = scale
+        self.velocity = velocity
+    }
+}

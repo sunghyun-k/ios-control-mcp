@@ -180,4 +180,100 @@ public final class IOSControlClient: @unchecked Sendable {
             return false
         }
     }
+
+    // MARK: - simctl 기반 API
+
+    /// 시뮬레이터 UDID 가져오기 (내부 헬퍼)
+    private func getSimulatorUDID() async throws -> String {
+        let statusResponse = try await status()
+        guard let udid = statusResponse.udid else {
+            throw IOSControlError.invalidResponse
+        }
+        return udid
+    }
+
+    /// simctl 명령 실행 (내부 헬퍼)
+    private func runSimctl(_ arguments: [String]) throws {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")
+        process.arguments = ["simctl"] + arguments
+        process.standardOutput = FileHandle.nullDevice
+        process.standardError = FileHandle.nullDevice
+
+        try process.run()
+        process.waitUntilExit()
+
+        if process.terminationStatus != 0 {
+            throw IOSControlError.simctlError(process.terminationStatus)
+        }
+    }
+
+    /// simctl 명령 실행 후 출력 반환 (내부 헬퍼)
+    private func runSimctlWithOutput(_ arguments: [String]) throws -> String {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")
+        process.arguments = ["simctl"] + arguments
+
+        let pipe = Pipe()
+        process.standardOutput = pipe
+        process.standardError = FileHandle.nullDevice
+
+        try process.run()
+        process.waitUntilExit()
+
+        let data = pipe.fileHandleForReading.readDataToEndOfFile()
+        return String(data: data, encoding: .utf8) ?? ""
+    }
+
+    /// URL 열기
+    public func openURL(_ url: String) async throws {
+        let udid = try await getSimulatorUDID()
+        try runSimctl(["openurl", udid, url])
+    }
+
+    /// 앱 종료
+    public func terminateApp(bundleId: String) async throws {
+        let udid = try await getSimulatorUDID()
+        try runSimctl(["terminate", udid, bundleId])
+    }
+
+    /// 클립보드 내용 가져오기
+    public func getPasteboard() async throws -> GetPasteboardResponse {
+        let udid = try await getSimulatorUDID()
+        let content = try runSimctlWithOutput(["pbpaste", udid])
+        return GetPasteboardResponse(content: content.isEmpty ? nil : content)
+    }
+
+    /// 클립보드에 내용 설정
+    public func setPasteboard(_ content: String) async throws {
+        let udid = try await getSimulatorUDID()
+
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")
+        process.arguments = ["simctl", "pbcopy", udid]
+
+        let inputPipe = Pipe()
+        process.standardInput = inputPipe
+        process.standardOutput = FileHandle.nullDevice
+        process.standardError = FileHandle.nullDevice
+
+        try process.run()
+        inputPipe.fileHandleForWriting.write(content.data(using: .utf8)!)
+        inputPipe.fileHandleForWriting.closeFile()
+        process.waitUntilExit()
+
+        if process.terminationStatus != 0 {
+            throw IOSControlError.simctlError(process.terminationStatus)
+        }
+    }
+
+    /// 핀치 제스처
+    public func pinch(_ request: PinchRequest) async throws {
+        _ = try await post("pinch", body: request)
+    }
+
+    /// 핀치 제스처 (좌표 직접 지정)
+    public func pinch(x: Double, y: Double, scale: Double, velocity: Double = 1.0) async throws {
+        try await pinch(PinchRequest(x: x, y: y, scale: scale, velocity: velocity))
+    }
 }

@@ -6,6 +6,7 @@ public enum IOSControlError: Error, LocalizedError {
     case invalidResponse
     case httpError(Int)
     case elementNotFound(String)
+    case simctlError(Int32)
 
     public var errorDescription: String? {
         switch self {
@@ -17,6 +18,8 @@ public enum IOSControlError: Error, LocalizedError {
             return "HTTP 오류: \(code)"
         case .elementNotFound(let label):
             return "요소를 찾을 수 없습니다: \(label)"
+        case .simctlError(let code):
+            return "simctl 오류: \(code)"
         }
     }
 }
