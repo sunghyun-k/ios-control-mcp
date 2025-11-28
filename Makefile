@@ -40,7 +40,7 @@ agent:
 		-destination 'generic/platform=iOS Simulator' \
 		-derivedDataPath $(AGENT_BUILD_DIR)
 
-# Playground 실행 (테스트용 CLI)
+# Playground 실행 (테스트용)
 playground:
 	swift run --package-path MCPServer --scratch-path $(BUILD_DIR)/MCPServer Playground $(ARGS)
 
