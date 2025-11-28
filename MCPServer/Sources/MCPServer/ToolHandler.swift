@@ -17,7 +17,12 @@ enum ToolHandler {
         let client = IOSControlClient()
         let args = arguments ?? [:]
 
-        // 도구 실행 전 서버 상태 확인 및 필요시 시작
+        // simctl 기반 도구 (서버 불필요)
+        if name == "list_apps" {
+            return try await handleListApps(client: client)
+        }
+
+        // Agent 서버 필요한 도구들
         try await ensureServerRunning(client: client)
 
         switch name {
@@ -44,9 +49,6 @@ enum ToolHandler {
 
         case "screenshot":
             return try await handleScreenshot(client: client)
-
-        case "list_apps":
-            return try await handleListApps(client: client)
 
         case "launch_app":
             return try await handleLaunchApp(client: client, args: args)

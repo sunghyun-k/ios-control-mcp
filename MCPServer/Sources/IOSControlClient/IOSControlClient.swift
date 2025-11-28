@@ -97,10 +97,45 @@ public final class IOSControlClient: @unchecked Sendable {
         return try JSONDecoder().decode(ForegroundAppResponse.self, from: data)
     }
 
-    /// 설치된 앱 목록 조회
+    /// 설치된 앱 목록 조회 (simctl 사용)
     public func listApps() async throws -> ListAppsResponse {
-        let data = try await get("listApps")
-        return try JSONDecoder().decode(ListAppsResponse.self, from: data)
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")
+        process.arguments = ["simctl", "listapps", "booted"]
+
+        let pipe = Pipe()
+        process.standardOutput = pipe
+        process.standardError = FileHandle.nullDevice
+
+        try process.run()
+        process.waitUntilExit()
+
+        let data = pipe.fileHandleForReading.readDataToEndOfFile()
+
+        // plist를 JSON으로 변환
+        let plutil = Process()
+        plutil.executableURL = URL(fileURLWithPath: "/usr/bin/plutil")
+        plutil.arguments = ["-convert", "json", "-o", "-", "-"]
+
+        let inputPipe = Pipe()
+        let outputPipe = Pipe()
+        plutil.standardInput = inputPipe
+        plutil.standardOutput = outputPipe
+        plutil.standardError = FileHandle.nullDevice
+
+        try plutil.run()
+        inputPipe.fileHandleForWriting.write(data)
+        inputPipe.fileHandleForWriting.closeFile()
+        plutil.waitUntilExit()
+
+        let jsonData = outputPipe.fileHandleForReading.readDataToEndOfFile()
+
+        guard let json = try JSONSerialization.jsonObject(with: jsonData) as? [String: Any] else {
+            throw IOSControlError.invalidResponse
+        }
+
+        let bundleIds = json.keys.sorted()
+        return ListAppsResponse(bundleIds: bundleIds)
     }
 
     /// 앱 실행
