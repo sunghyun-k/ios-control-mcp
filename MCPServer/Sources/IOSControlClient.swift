@@ -97,6 +97,22 @@ public final class IOSControlClient: @unchecked Sendable {
         return try JSONDecoder().decode(ForegroundAppResponse.self, from: data)
     }
 
+    /// 설치된 앱 목록 조회
+    public func listApps() async throws -> ListAppsResponse {
+        let data = try await get("listApps")
+        return try JSONDecoder().decode(ListAppsResponse.self, from: data)
+    }
+
+    /// 앱 실행
+    public func launchApp(bundleId: String) async throws {
+        _ = try await post("launchApp", body: LaunchAppRequest(bundleId: bundleId))
+    }
+
+    /// 홈으로 이동
+    public func goHome() async throws {
+        _ = try await get("goHome")
+    }
+
     /// 스크린샷
     public func screenshot(format: String = "png") async throws -> Data {
         var components = URLComponents(url: baseURL.appendingPathComponent("screenshot"), resolvingAgainstBaseURL: false)!

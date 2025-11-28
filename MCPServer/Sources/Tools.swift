@@ -100,6 +100,33 @@ enum Tools {
             "type": .string("object"),
             "properties": .object([:])
         ])
+    ),
+    Tool(
+        name: "list_apps",
+        description: "시뮬레이터에 설치된 앱들의 번들 ID 목록을 반환합니다.",
+        inputSchema: .object([
+            "type": .string("object"),
+            "properties": .object([:])
+        ])
+    ),
+    Tool(
+        name: "launch_app",
+        description: "번들 ID로 앱을 실행합니다.",
+        inputSchema: .object([
+            "type": .string("object"),
+            "properties": .object([
+                "bundle_id": .object(["type": .string("string"), "description": .string("실행할 앱의 번들 ID")])
+            ]),
+            "required": .array([.string("bundle_id")])
+        ])
+    ),
+    Tool(
+        name: "go_home",
+        description: "홈 화면으로 이동합니다. 현재 앱을 종료하고 홈 화면으로 돌아갑니다.",
+        inputSchema: .object([
+            "type": .string("object"),
+            "properties": .object([:])
+        ])
     )
     ]
 }

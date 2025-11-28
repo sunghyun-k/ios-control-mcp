@@ -10,6 +10,9 @@ enum Route: String, CaseIterable {
     case tree
     case screenshot
     case foregroundApp
+    case listApps
+    case launchApp
+    case goHome
 
     var httpRoute: HTTPRoute {
         HTTPRoute(rawValue)
@@ -42,6 +45,9 @@ struct IOSControlServer {
         await server.appendRoute(Route.tree.httpRoute, to: TreeHandler())
         await server.appendRoute(Route.screenshot.httpRoute, to: ScreenshotHandler())
         await server.appendRoute(Route.foregroundApp.httpRoute, to: ForegroundAppHandler())
+        await server.appendRoute(Route.listApps.httpRoute, to: ListAppsHandler())
+        await server.appendRoute(Route.launchApp.httpRoute, to: LaunchAppHandler())
+        await server.appendRoute(Route.goHome.httpRoute, to: GoHomeHandler())
 
         logger.info("IOSControl HTTP server started on port \(port)")
         try await server.run()

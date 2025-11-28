@@ -44,6 +44,15 @@ enum ToolHandler {
         case "screenshot":
             return try await handleScreenshot(client: client)
 
+        case "list_apps":
+            return try await handleListApps(client: client)
+
+        case "launch_app":
+            return try await handleLaunchApp(client: client, args: args)
+
+        case "go_home":
+            return try await handleGoHome(client: client)
+
         default:
             throw IOSControlError.invalidResponse
         }
@@ -151,5 +160,24 @@ enum ToolHandler {
         let data = try await client.screenshot()
         let base64 = data.base64EncodedString()
         return [.image(data: base64, mimeType: "image/png", metadata: nil)]
+    }
+
+    private static func handleListApps(client: IOSControlClient) async throws -> [Tool.Content] {
+        let response = try await client.listApps()
+        let list = response.bundleIds.joined(separator: "\n")
+        return [.text(list)]
+    }
+
+    private static func handleLaunchApp(client: IOSControlClient, args: [String: Value]) async throws -> [Tool.Content] {
+        guard let bundleId = args["bundle_id"]?.stringValue else {
+            throw IOSControlError.invalidResponse
+        }
+        try await client.launchApp(bundleId: bundleId)
+        return [.text("launched \(bundleId)")]
+    }
+
+    private static func handleGoHome(client: IOSControlClient) async throws -> [Tool.Content] {
+        try await client.goHome()
+        return [.text("pressed home button")]
     }
 }

@@ -26,3 +26,12 @@ public struct ForegroundAppResponse: Codable, Sendable {
         self.bundleId = bundleId
     }
 }
+
+/// 설치된 앱 목록 응답
+public struct ListAppsResponse: Codable, Sendable {
+    public let bundleIds: [String]
+
+    public init(bundleIds: [String]) {
+        self.bundleIds = bundleIds
+    }
+}

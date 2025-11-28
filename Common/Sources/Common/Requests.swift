@@ -47,3 +47,12 @@ public struct TreeRequest: Codable, Sendable {
         self.appBundleId = appBundleId
     }
 }
+
+/// 앱 실행 요청
+public struct LaunchAppRequest: Codable, Sendable {
+    public let bundleId: String
+
+    public init(bundleId: String) {
+        self.bundleId = bundleId
+    }
+}
