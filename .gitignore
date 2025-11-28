@@ -1,0 +1,38 @@
+# macOS
+.DS_Store
+._*
+
+# Xcode
+**/build/
+DerivedData/
+*.xcworkspace/
+xcuserdata/
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+*.xccheckout
+*.moved-aside
+*.xcuserstate
+*.xcscmblueprint
+*.xcarchive
+buildServer.json
+
+# Swift Package Manager
+.build/
+.swiftpm/
+Packages/
+
+# Auto-generated files
+MCPServer/Sources/Version.swift
+
+# Release artifacts
+release/
+
+# npm
+vendor/
+node_modules/

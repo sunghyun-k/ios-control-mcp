@@ -1,0 +1,34 @@
+{
+  "name": "ios-control-mcp",
+  "version": "0.1.0",
+  "description": "iOS Simulator automation MCP server",
+  "bin": {
+    "ios-control-mcp": "./bin/cli.js"
+  },
+  "scripts": {
+    "postinstall": "node ./scripts/postinstall.js"
+  },
+  "files": [
+    "bin/",
+    "scripts/postinstall.js"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sunghyun-k/ios-control-mcp.git"
+  },
+  "keywords": [
+    "mcp",
+    "ios",
+    "simulator",
+    "automation",
+    "claude"
+  ],
+  "author": "",
+  "license": "MIT",
+  "os": [
+    "darwin"
+  ],
+  "engines": {
+    "node": ">=18"
+  }
+}
