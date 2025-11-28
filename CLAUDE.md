@@ -49,6 +49,26 @@ try await client.launchApp(bundleId: "com.apple.Preferences")
 
 ## 아키텍처 노트
 
+### SimulatorAgent 원리
+
+**XCTest Hack:**
+- iOS 시뮬레이터에서 일반 앱은 네트워크 바인딩이 제한되지만, XCTest 프레임워크는 특별한 권한을 가짐.
+- SimulatorAgent는 XCTest 번들(`SimulatorAgentTests`)로 구성되어 이 권한을 활용.
+- `testRunServer()` 테스트가 실행되면 HTTP 서버가 무한 루프로 유지됨.
+
+**UI 조작 메커니즘:**
+- `RunnerDaemonProxy`: Objective-C 런타임 리플렉션으로 XCTest 백엔드(`XCTRunnerDaemonSession`)에 접근.
+  - `_XCT_synthesizeEvent:completion:` - 터치/스와이프 이벤트 합성
+  - `_XCT_sendString:maximumFrequency:completion:` - 텍스트 입력
+- `EventRecord`, `PointerEventPath`: 터치 이벤트 경로 구성.
+- 공개 XCTest API: `XCUIApplication`(앱 실행), `XCUIScreen`(스크린샷), `XCUIDevice`(홈 버튼).
+
+**HTTP 서버:**
+- FlyingFox 라이브러리 사용 (async/await 기반 경량 HTTP 서버).
+- `127.0.0.1:22087` 포트에서 9개 엔드포인트 제공.
+
+### UDID 및 simctl
+
 - SimulatorAgent는 `SIMULATOR_UDID` 환경변수로 자신이 실행 중인 시뮬레이터 UDID를 알 수 있음.
 - `/status` 응답에 `udid` 필드가 포함되어 있어, 클라이언트가 정확한 시뮬레이터를 대상으로 simctl 명령 실행 가능.
 - `list_apps`는 Agent에서 UDID를 받아 `simctl listapps <udid>`로 호출.
