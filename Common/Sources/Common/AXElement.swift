@@ -91,28 +91,4 @@ extension AXElement {
         return nil
     }
 
-    /// 텍스트 형식으로 트리 출력
-    public func formatTree(indent: Int = 0, showCoords: Bool = true) -> String {
-        var lines: [String] = []
-        let prefix = String(repeating: "  ", count: indent)
-
-        var line = "\(prefix)\(type)"
-        if !label.isEmpty {
-            line += ": \"\(label)\""
-        }
-
-        if showCoords {
-            line += " (\(Int(frame.x)),\(Int(frame.y)) \(Int(frame.width))x\(Int(frame.height)))"
-        }
-
-        lines.append(line)
-
-        if let children = children {
-            for child in children {
-                lines.append(child.formatTree(indent: indent + 1, showCoords: showCoords))
-            }
-        }
-
-        return lines.joined(separator: "\n")
-    }
 }

@@ -12,16 +12,6 @@ struct PointerEventPath {
         return Self(path: path, offset: offset)
     }
 
-    static func pathForTextInput(offset: TimeInterval = 0) -> Self {
-        let alloced = objc_lookUpClass("XCPointerEventPath")!.alloc() as! NSObject
-        let selector = NSSelectorFromString("initForTextInput")
-        let imp = alloced.method(for: selector)
-        typealias Method = @convention(c) (NSObject, Selector) -> NSObject
-        let method = unsafeBitCast(imp, to: Method.self)
-        let path = method(alloced, selector)
-        return Self(path: path, offset: offset)
-    }
-
     let path: NSObject
     var offset: TimeInterval
 
@@ -44,14 +34,6 @@ struct PointerEventPath {
         typealias Method = @convention(c) (NSObject, Selector, CGPoint, TimeInterval) -> ()
         let method = unsafeBitCast(imp, to: Method.self)
         method(path, selector, point, offset)
-    }
-
-    mutating func type(text: String, typingSpeed: Int, shouldRedact: Bool = false) {
-        let selector = NSSelectorFromString("typeText:atOffset:typingSpeed:shouldRedact:")
-        let imp = path.method(for: selector)
-        typealias Method = @convention(c) (NSObject, Selector, NSString, TimeInterval, UInt64, Bool) -> ()
-        let method = unsafeBitCast(imp, to: Method.self)
-        method(path, selector, text as NSString, offset, UInt64(typingSpeed), shouldRedact)
     }
 
     mutating func set(modifiers: KeyModifierFlags = []) {

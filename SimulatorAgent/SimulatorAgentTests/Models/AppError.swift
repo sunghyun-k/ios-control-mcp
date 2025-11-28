@@ -3,8 +3,6 @@ import FlyingFox
 
 enum AppErrorCode: String, Codable {
     case badRequest
-    case notFound
-    case timeout
     case `internal`
 }
 
@@ -20,8 +18,6 @@ struct AppError: Error, Codable {
     var httpResponse: HTTPResponse {
         let statusCode: HTTPStatusCode = switch code {
         case .badRequest: .badRequest
-        case .notFound: .notFound
-        case .timeout: .requestTimeout
         case .internal: .internalServerError
         }
         let body = (try? JSONEncoder().encode(self)) ?? Data()
