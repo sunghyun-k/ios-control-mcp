@@ -4,10 +4,29 @@ iOS 시뮬레이터 자동화를 위한 MCP(Model Context Protocol) 서버입니
 
 ## 주요 기능
 
-- iOS 시뮬레이터 UI 요소 탐색 및 조작
-- 탭, 스와이프, 텍스트 입력 등 제스처 자동화
-- 스크린샷 캡처
-- 앱 실행 및 관리
+### UI 조작
+- **tap** - 라벨로 UI 요소를 찾아 탭 (롱프레스 지원)
+- **tap_coordinate** - 좌표로 직접 탭
+- **swipe** - 스와이프 제스처
+- **scroll** - 화면 스크롤
+- **pinch** - 핀치 줌 인/아웃 (지도, 이미지 확대/축소)
+- **input_text** - 텍스트 입력
+
+### 앱 관리
+- **launch_app** - 번들 ID로 앱 실행
+- **terminate_app** - 앱 강제 종료
+- **list_apps** - 설치된 앱 목록 조회
+- **get_foreground_app** - 현재 포그라운드 앱 확인
+- **go_home** - 홈 화면으로 이동
+
+### 화면 정보
+- **get_ui_tree** - UI 요소 트리 조회
+- **screenshot** - 스크린샷 캡처 (PNG)
+
+### 유틸리티
+- **open_url** - URL 열기 (딥링크, Safari)
+- **get_pasteboard** - 클립보드 읽기
+- **set_pasteboard** - 클립보드 쓰기
 
 ## 요구 사항
 

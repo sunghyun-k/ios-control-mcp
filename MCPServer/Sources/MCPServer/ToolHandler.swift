@@ -54,6 +54,21 @@ enum ToolHandler {
         case "go_home":
             return try await handleGoHome(client: client)
 
+        case "terminate_app":
+            return try await handleTerminateApp(client: client, args: args)
+
+        case "open_url":
+            return try await handleOpenURL(client: client, args: args)
+
+        case "get_pasteboard":
+            return try await handleGetPasteboard(client: client)
+
+        case "set_pasteboard":
+            return try await handleSetPasteboard(client: client, args: args)
+
+        case "pinch":
+            return try await handlePinch(client: client, args: args)
+
         default:
             throw IOSControlError.invalidResponse
         }
@@ -180,6 +195,47 @@ enum ToolHandler {
     private static func handleGoHome(client: IOSControlClient) async throws -> [Tool.Content] {
         try await client.goHome()
         return [.text("pressed home button")]
+    }
+
+    private static func handleTerminateApp(client: IOSControlClient, args: [String: Value]) async throws -> [Tool.Content] {
+        guard let bundleId = args["bundle_id"]?.stringValue else {
+            throw IOSControlError.invalidResponse
+        }
+        try await client.terminateApp(bundleId: bundleId)
+        return [.text("terminated \(bundleId)")]
+    }
+
+    private static func handleOpenURL(client: IOSControlClient, args: [String: Value]) async throws -> [Tool.Content] {
+        guard let url = args["url"]?.stringValue else {
+            throw IOSControlError.invalidResponse
+        }
+        try await client.openURL(url)
+        return [.text("opened \(url)")]
+    }
+
+    private static func handleGetPasteboard(client: IOSControlClient) async throws -> [Tool.Content] {
+        let response = try await client.getPasteboard()
+        return [.text(response.content ?? "")]
+    }
+
+    private static func handleSetPasteboard(client: IOSControlClient, args: [String: Value]) async throws -> [Tool.Content] {
+        guard let content = args["content"]?.stringValue else {
+            throw IOSControlError.invalidResponse
+        }
+        try await client.setPasteboard(content)
+        return [.text("set pasteboard to \"\(content)\"")]
+    }
+
+    private static func handlePinch(client: IOSControlClient, args: [String: Value]) async throws -> [Tool.Content] {
+        guard let x = getDouble(args["x"]),
+              let y = getDouble(args["y"]),
+              let scale = getDouble(args["scale"]) else {
+            throw IOSControlError.invalidResponse
+        }
+        let velocity = getDouble(args["velocity"]) ?? 1.0
+        try await client.pinch(x: x, y: y, scale: scale, velocity: velocity)
+        let action = scale > 1.0 ? "zoomed in" : "zoomed out"
+        return [.text("\(action) at (\(x), \(y)) with scale \(scale)")]
     }
 
     /// 서버가 실행 중인지 확인하고, 실행 중이지 않으면 SimulatorAgent 시작

@@ -127,6 +127,61 @@ enum Tools {
             "type": .string("object"),
             "properties": .object([:])
         ])
+    ),
+    Tool(
+        name: "terminate_app",
+        description: "실행 중인 앱을 강제 종료합니다.",
+        inputSchema: .object([
+            "type": .string("object"),
+            "properties": .object([
+                "bundle_id": .object(["type": .string("string"), "description": .string("종료할 앱의 번들 ID")])
+            ]),
+            "required": .array([.string("bundle_id")])
+        ])
+    ),
+    Tool(
+        name: "open_url",
+        description: "URL을 엽니다. 딥링크나 웹 URL을 Safari에서 열 수 있습니다.",
+        inputSchema: .object([
+            "type": .string("object"),
+            "properties": .object([
+                "url": .object(["type": .string("string"), "description": .string("열 URL (예: https://example.com 또는 myapp://path)")])
+            ]),
+            "required": .array([.string("url")])
+        ])
+    ),
+    Tool(
+        name: "get_pasteboard",
+        description: "시뮬레이터 클립보드의 내용을 가져옵니다.",
+        inputSchema: .object([
+            "type": .string("object"),
+            "properties": .object([:])
+        ])
+    ),
+    Tool(
+        name: "set_pasteboard",
+        description: "시뮬레이터 클립보드에 텍스트를 설정합니다.",
+        inputSchema: .object([
+            "type": .string("object"),
+            "properties": .object([
+                "content": .object(["type": .string("string"), "description": .string("클립보드에 설정할 텍스트")])
+            ]),
+            "required": .array([.string("content")])
+        ])
+    ),
+    Tool(
+        name: "pinch",
+        description: "핀치 제스처를 수행합니다. 지도나 이미지 확대/축소에 사용합니다.",
+        inputSchema: .object([
+            "type": .string("object"),
+            "properties": .object([
+                "x": .object(["type": .string("number"), "description": .string("핀치 중심 X 좌표")]),
+                "y": .object(["type": .string("number"), "description": .string("핀치 중심 Y 좌표")]),
+                "scale": .object(["type": .string("number"), "description": .string("줌 배율. 1.0 미만이면 줌 아웃, 1.0 초과면 줌 인 (예: 2.0은 2배 확대)")]),
+                "velocity": .object(["type": .string("number"), "description": .string("핀치 속도. 기본값 1.0")])
+            ]),
+            "required": .array([.string("x"), .string("y"), .string("scale")])
+        ])
     )
     ]
 }
