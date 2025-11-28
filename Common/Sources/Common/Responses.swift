@@ -3,9 +3,11 @@ import Foundation
 /// 상태 응답
 public struct StatusResponse: Codable, Sendable {
     public let status: String
+    public let udid: String?
 
-    public init(status: String) {
+    public init(status: String, udid: String? = nil) {
         self.status = status
+        self.udid = udid
     }
 }
 

@@ -17,17 +17,15 @@ enum ToolHandler {
         let client = IOSControlClient()
         let args = arguments ?? [:]
 
-        // simctl 기반 도구 (서버 불필요)
-        if name == "list_apps" {
-            return try await handleListApps(client: client)
-        }
-
         // Agent 서버 필요한 도구들
         try await ensureServerRunning(client: client)
 
         switch name {
         case "tap":
             return try await handleTapElement(client: client, args: args)
+
+        case "list_apps":
+            return try await handleListApps(client: client)
 
         case "tap_coordinate":
             return try await handleTapCoordinate(client: client, args: args)

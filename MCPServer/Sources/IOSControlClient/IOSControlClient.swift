@@ -97,11 +97,17 @@ public final class IOSControlClient: @unchecked Sendable {
         return try JSONDecoder().decode(ForegroundAppResponse.self, from: data)
     }
 
-    /// 설치된 앱 목록 조회 (simctl 사용)
+    /// 설치된 앱 목록 조회 (simctl 사용, Agent에서 UDID 가져옴)
     public func listApps() async throws -> ListAppsResponse {
+        // Agent에서 시뮬레이터 UDID 가져오기
+        let statusResponse = try await status()
+        guard let udid = statusResponse.udid else {
+            throw IOSControlError.invalidResponse
+        }
+
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")
-        process.arguments = ["simctl", "listapps", "booted"]
+        process.arguments = ["simctl", "listapps", udid]
 
         let pipe = Pipe()
         process.standardOutput = pipe
