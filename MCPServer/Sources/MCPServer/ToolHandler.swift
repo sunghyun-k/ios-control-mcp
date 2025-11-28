@@ -1,6 +1,7 @@
 import Foundation
 import MCP
 import Common
+import IOSControlClient
 
 // MARK: - Tool Handler
 
@@ -17,7 +18,7 @@ enum ToolHandler {
         let args = arguments ?? [:]
 
         // 도구 실행 전 서버 상태 확인 및 필요시 시작
-        try await client.ensureServerRunning()
+        try await ensureServerRunning(client: client)
 
         switch name {
         case "tap":
@@ -179,5 +180,13 @@ enum ToolHandler {
     private static func handleGoHome(client: IOSControlClient) async throws -> [Tool.Content] {
         try await client.goHome()
         return [.text("pressed home button")]
+    }
+
+    /// 서버가 실행 중인지 확인하고, 실행 중이지 않으면 SimulatorAgent 시작
+    private static func ensureServerRunning(client: IOSControlClient) async throws {
+        if await client.isServerRunning() {
+            return
+        }
+        try await SimulatorAgentRunner.shared.start(timeout: 60)
     }
 }

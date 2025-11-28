@@ -1,8 +1,8 @@
-.PHONY: mcp mcp-run agent agent-run clean release-arm64 release-x64 release-universal release
+.PHONY: mcp mcp-run agent agent-run playground clean release-arm64 release-x64 release-universal release
 
 # 버전 정보 (package.json에서 읽기)
 VERSION := $(shell node -p "require('./package.json').version")
-VERSION_FILE := MCPServer/Sources/Version.swift
+VERSION_FILE := MCPServer/Sources/MCPServer/Version.swift
 
 # 공통 경로
 BUILD_DIR := $(CURDIR)/.build
@@ -18,6 +18,7 @@ UDID ?= $(shell $(CURDIR)/scripts/find-simulator.sh)
 # 버전 파일 생성
 generate-version:
 	@echo "Generating version file for $(VERSION)..."
+	@mkdir -p $(dir $(VERSION_FILE))
 	@echo "// Auto-generated file - DO NOT EDIT" > $(VERSION_FILE)
 	@echo "let appVersion = \"$(VERSION)\"" >> $(VERSION_FILE)
 
@@ -38,6 +39,10 @@ agent:
 		-scheme SimulatorAgent \
 		-destination 'generic/platform=iOS Simulator' \
 		-derivedDataPath $(AGENT_BUILD_DIR)
+
+# Playground 실행 (테스트용 CLI)
+playground:
+	swift run --package-path MCPServer --scratch-path $(BUILD_DIR)/MCPServer Playground $(ARGS)
 
 # SimulatorAgent 빌드 + 설치 + 실행
 agent-run: agent

@@ -10,12 +10,23 @@ let package = Package(
         .package(path: "../Common"),
     ],
     targets: [
+        // HTTP 클라이언트 라이브러리
+        .target(
+            name: "IOSControlClient",
+            dependencies: ["Common"]
+        ),
+        // MCP 서버 실행 타겟
         .executableTarget(
             name: "MCPServer",
             dependencies: [
                 .product(name: "MCP", package: "swift-sdk"),
-                "Common",
+                "IOSControlClient",
             ]
+        ),
+        // 테스트용 CLI
+        .executableTarget(
+            name: "Playground",
+            dependencies: ["IOSControlClient"]
         ),
     ]
 )

@@ -28,7 +28,7 @@ buildServer.json
 Packages/
 
 # Auto-generated files
-MCPServer/Sources/Version.swift
+MCPServer/Sources/MCPServer/Version.swift
 
 # Release artifacts
 release/

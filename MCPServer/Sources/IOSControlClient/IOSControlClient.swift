@@ -130,15 +130,13 @@ public final class IOSControlClient: @unchecked Sendable {
         return data
     }
 
-    /// 서버가 실행 중인지 확인하고, 실행 중이지 않으면 xcodebuild로 SimulatorAgent 테스트 시작
-    public func ensureServerRunning() async throws {
+    /// 서버가 실행 중인지 확인
+    public func isServerRunning() async -> Bool {
         do {
             _ = try await status()
-            return // 서버가 이미 실행 중
+            return true
         } catch {
-            // 서버가 실행 중이지 않으면 SimulatorAgentRunner로 시작
+            return false
         }
-
-        try await SimulatorAgentRunner.shared.start(timeout: 60)
     }
 }
