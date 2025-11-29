@@ -1,45 +1,47 @@
 # ios-control-mcp
 
-iOS 시뮬레이터 및 실제 iOS 기기를 자동화하기 위한 MCP(Model Context Protocol) 서버입니다. Claude와 같은 LLM이 iOS 디바이스와 상호작용할 수 있게 해줍니다.
+[한국어](README.ko.md)
 
-## 주요 기능
+An MCP (Model Context Protocol) server for automating iOS simulators and real iOS devices. Enables LLMs like Claude to interact with iOS devices.
 
-### 기기 관리
-- **list_devices** - 연결된 iOS 기기 목록 조회 (실제 기기 연결 시에만 필요)
-- **select_device** - 조작할 기기 선택 (UDID 지정 또는 자동 선택)
+## Features
 
-### UI 조작
-- **tap** - 라벨로 UI 요소를 찾아 탭 (롱프레스 지원)
-- **tap_coordinate** - 좌표로 직접 탭
-- **swipe** - 스와이프 제스처
-- **scroll** - 화면 스크롤 (방향 기반)
-- **drag** - UI 요소 드래그 (리스트 재정렬 등)
-- **pinch** - 핀치 줌 인/아웃 (지도, 이미지 확대/축소)
-- **input_text** - 텍스트 입력
+### Device Management
+- **list_devices** - List connected iOS devices (only needed when physical devices are connected)
+- **select_device** - Select device to control (specify UDID or auto-select)
 
-### 앱 관리
-- **launch_app** - 번들 ID로 앱 실행
-- **list_apps** - 설치된 앱 목록 조회
-- **go_home** - 홈 화면으로 이동
+### UI Interactions
+- **tap** - Find and tap UI element by label (supports long press)
+- **tap_coordinate** - Tap at specific coordinates
+- **swipe** - Swipe gesture
+- **scroll** - Scroll screen (direction-based)
+- **drag** - Drag UI element (for list reordering, etc.)
+- **pinch** - Pinch zoom in/out (for maps, images)
+- **input_text** - Input text
 
-### 화면 정보
-- **get_ui_tree** - UI 접근성 트리 조회 (YAML 형식, 좌표 표시 옵션)
-- **screenshot** - 스크린샷 캡처 (PNG)
+### App Management
+- **launch_app** - Launch app by bundle ID
+- **list_apps** - List installed apps
+- **go_home** - Go to home screen
 
-## 요구 사항
+### Screen Information
+- **get_ui_tree** - Get UI accessibility tree (YAML format, optional coordinates)
+- **screenshot** - Capture screenshot (PNG)
 
-- macOS 13 이상
-- Xcode (iOS 시뮬레이터 포함)
-- Node.js 18 이상
-- 실기기 지원 시: Apple Developer Team ID (무료/유료)
+## Requirements
 
-## 설치
+- macOS 13 or later
+- Xcode (with iOS Simulator)
+- Node.js 18 or later
+- For physical devices: Apple Developer Team ID (free or paid)
 
-### 시뮬레이터 사용 (기본)
+## Installation
 
-시뮬레이터는 별도 설정 없이 바로 사용할 수 있습니다.
+### Using Simulator (Default)
 
-**Standard config** - 대부분의 MCP 클라이언트에서 동작합니다:
+Simulators work out of the box without additional setup.
+
+**Standard config** - Works with most MCP clients:
 
 ```json
 {
@@ -67,59 +69,59 @@ claude mcp add ios-control -- npx -y ios-control-mcp
 <details>
 <summary>Claude Desktop</summary>
 
-[MCP 설치 가이드](https://modelcontextprotocol.io/quickstart/user)를 따라 위의 Standard config를 사용하세요.
+Follow the [MCP installation guide](https://modelcontextprotocol.io/quickstart/user) using the standard config above.
 
 </details>
 
 <details>
 <summary>Cursor</summary>
 
-`Cursor Settings` → `MCP` → `Add new MCP Server`로 이동합니다. 이름을 지정하고, `command` 타입으로 `npx -y ios-control-mcp` 명령어를 입력합니다.
+Go to `Cursor Settings` → `MCP` → `Add new MCP Server`. Set a name and enter `npx -y ios-control-mcp` as the command type.
 
 </details>
 
 <details>
 <summary>VS Code</summary>
 
-VS Code CLI로 설치:
+Install via VS Code CLI:
 
 ```bash
 code --add-mcp '{"name":"ios-control","command":"npx","args":["-y","ios-control-mcp"]}'
 ```
 
-또는 [MCP 설치 가이드](https://code.visualstudio.com/docs/copilot/chat/mcp-servers#_add-an-mcp-server)를 따라 위의 Standard config를 사용하세요.
+Or follow the [MCP installation guide](https://code.visualstudio.com/docs/copilot/chat/mcp-servers#_add-an-mcp-server) using the standard config above.
 
 </details>
 
 <details>
 <summary>Windsurf</summary>
 
-[Windsurf MCP 문서](https://docs.windsurf.com/windsurf/cascade/mcp)를 따라 위의 Standard config를 사용하세요.
+Follow the [Windsurf MCP documentation](https://docs.windsurf.com/windsurf/cascade/mcp) using the standard config above.
 
 </details>
 
-### 실제 iOS 기기 사용
+### Using Physical iOS Devices
 
-실제 iOS 기기를 사용하려면 Apple Developer Team ID가 필요합니다. 무료 Apple ID로도 가능합니다.
+Using physical iOS devices requires an Apple Developer Team ID. A free Apple ID works too.
 
-#### 1. Team ID 찾기
+#### 1. Find Your Team ID
 
-터미널에서 다음 명령어로 Team ID를 확인합니다:
+Run this command in Terminal to find your Team ID:
 
 ```bash
 security find-identity -v -p codesigning
 ```
 
-출력 예시:
+Example output:
 ```
 1) ABCDEF1234567890... "Apple Development: your@email.com (XXXXXXXXXX)"
 ```
 
-괄호 안의 10자리 문자열(예: `XXXXXXXXXX`)이 Team ID입니다.
+The 10-character string in parentheses (e.g., `XXXXXXXXXX`) is your Team ID.
 
-> **Team ID가 없다면?** Xcode에서 아무 프로젝트나 열고, 본인 Apple ID로 로그인한 뒤 한 번이라도 기기에 앱을 빌드하면 자동으로 생성됩니다.
+> **Don't have a Team ID?** Open any project in Xcode, sign in with your Apple ID, and build to a device once. This will automatically generate a Team ID.
 
-#### 2. MCP 설정에 Team ID 추가
+#### 2. Add Team ID to MCP Configuration
 
 ```json
 {
@@ -135,45 +137,45 @@ security find-identity -v -p codesigning
 }
 ```
 
-#### 3. 기기 준비
+#### 3. Prepare Your Device
 
-1. **개발자 모드 활성화**: 설정 → 개인정보 보호 및 보안 → 개발자 모드 → 활성화 (iOS 16+)
-2. **USB 연결**: Mac에 기기를 USB로 연결하고 "이 컴퓨터를 신뢰하시겠습니까?" 팝업에서 신뢰 선택
-3. **첫 실행 시**: 기기에 앱 설치 후 "신뢰하지 않는 개발자" 경고가 뜨면, 설정 → 일반 → VPN 및 기기 관리에서 개발자 앱을 신뢰하도록 설정
+1. **Enable Developer Mode**: Settings → Privacy & Security → Developer Mode → Enable (iOS 16+)
+2. **Connect via USB**: Connect your device to Mac via USB and tap "Trust" when prompted
+3. **First run**: After the app is installed, if you see "Untrusted Developer" warning, go to Settings → General → VPN & Device Management and trust the developer app
 
-## 트러블슈팅
+## Troubleshooting
 
-### 시뮬레이터
+### Simulator
 
-| 에러 | 해결 방법 |
-|------|----------|
-| "사용 가능한 iPhone 시뮬레이터가 없습니다" | Xcode 설치 후 `xcodebuild -downloadPlatform iOS` 실행 |
-| "AutomationServer 앱을 찾을 수 없습니다" | 처음 실행 시 자동으로 빌드됩니다. Xcode가 설치되어 있는지 확인하세요. |
-| "시뮬레이터 부팅 실패" | Xcode → Settings → Platforms에서 iOS 시뮬레이터가 설치되어 있는지 확인 |
+| Error | Solution |
+|-------|----------|
+| "No available iPhone simulator" | Install Xcode and run `xcodebuild -downloadPlatform iOS` |
+| "AutomationServer app not found" | It builds automatically on first run. Make sure Xcode is installed. |
+| "Simulator boot failed" | Check if iOS Simulator is installed in Xcode → Settings → Platforms |
 
-### 실제 기기
+### Physical Devices
 
-| 에러 | 해결 방법 |
-|------|----------|
-| "Physical device requires Apple Developer Team ID" | MCP 설정의 `env`에 `IOS_CONTROL_TEAM_ID` 추가 |
-| "Xcode project not found" | Xcode가 설치되어 있는지 확인하세요 |
-| 빌드 실패 (사이닝 에러) | 1) Team ID가 올바른지 확인<br>2) 기기가 USB로 연결되어 있는지 확인<br>3) Xcode에서 해당 기기로 아무 앱이나 한 번 빌드하여 프로비저닝 설정 |
-| "신뢰하지 않는 개발자" | 기기의 설정 → 일반 → VPN 및 기기 관리에서 개발자 앱 신뢰 |
-| 기기가 목록에 안 보임 | 1) USB 케이블 재연결<br>2) "이 컴퓨터를 신뢰" 팝업 확인<br>3) 개발자 모드 활성화 확인 |
+| Error | Solution |
+|-------|----------|
+| "Physical device requires Apple Developer Team ID" | Add `IOS_CONTROL_TEAM_ID` to `env` in MCP config |
+| "Xcode project not found" | Make sure Xcode is installed |
+| Build failed (signing error) | 1) Verify Team ID is correct<br>2) Ensure device is connected via USB<br>3) Build any app to the device in Xcode first to set up provisioning |
+| "Untrusted Developer" | Go to Settings → General → VPN & Device Management on device and trust the developer app |
+| Device not showing in list | 1) Reconnect USB cable<br>2) Check "Trust This Computer" prompt<br>3) Verify Developer Mode is enabled |
 
-### 공통
+### Common
 
-| 에러 | 해결 방법 |
-|------|----------|
-| "No iOS device or simulator available" | Xcode 설치 및 시뮬레이터 다운로드, 또는 실제 기기 USB 연결 |
-| "서버가 시작되지 않았습니다" | Agent 앱이 기기/시뮬레이터에서 정상 실행 중인지 확인. 재시도하거나 기기를 재부팅하세요. |
+| Error | Solution |
+|-------|----------|
+| "No iOS device or simulator available" | Install Xcode and download simulator, or connect a physical device via USB |
+| "Server did not start" | Check if agent app is running properly on device/simulator. Retry or reboot the device. |
 
-## 아키텍처
+## Architecture
 
-이 프로젝트는 두 개의 주요 컴포넌트로 구성됩니다:
+This project consists of two main components:
 
-1. **MCP 서버** (macOS) - LLM과 통신하는 MCP 프로토콜 서버
-2. **AutomationServer** (iOS) - 시뮬레이터/실기기에서 실행되는 XCTest 기반 자동화 에이전트
+1. **MCP Server** (macOS) - MCP protocol server that communicates with LLMs
+2. **AutomationServer** (iOS) - XCTest-based automation agent running on simulator/device
 
 ```
 ┌─────────────┐     MCP      ┌─────────────┐    HTTP     ┌──────────────────┐
@@ -182,41 +184,41 @@ security find-identity -v -p codesigning
 └─────────────┘              └─────────────┘             └──────────────────┘
 ```
 
-XCTest 프레임워크의 특별한 권한을 활용하여 시뮬레이터 내에서 HTTP 서버를 실행하고, Objective-C 런타임 리플렉션으로 터치/스와이프 이벤트를 합성합니다.
+It leverages the special privileges of the XCTest framework to run an HTTP server inside the simulator, synthesizing touch/swipe events through Objective-C runtime reflection.
 
-## 개발
+## Development
 
-### 빌드 명령어
+### Build Commands
 
 ```bash
-# MCP 서버
-make mcp              # 빌드
-make mcp-run          # 빌드 및 실행
+# MCP Server
+make mcp              # Build
+make mcp-run          # Build and run
 
-# AutomationServer (시뮬레이터)
-make agent            # 빌드
-make agent-run        # 빌드 및 실행
+# AutomationServer (Simulator)
+make agent            # Build
+make agent-run        # Build and run
 
-# AutomationServer (실기기)
+# AutomationServer (Physical Device)
 make device-agent TEAM=<TEAM_ID>
 make device-agent-run DEVICE_UDID=<UDID> TEAM=<TEAM_ID>
 
-# 테스트용 Playground
+# Test Playground
 make playground
 
-# 정리
+# Clean
 make clean
 ```
 
 ### Playground
 
-MCP 서버 없이 클라이언트 라이브러리를 직접 테스트할 수 있습니다:
+Test the client library directly without the MCP server:
 
-1. AutomationServer 실행 (별도 터미널): `make agent-run`
-2. Playground 실행: `make playground`
+1. Run AutomationServer (in separate terminal): `make agent-run`
+2. Run Playground: `make playground`
 
-`MCPServer/Sources/Playground/main.swift` 파일을 수정하여 테스트 코드를 작성합니다.
+Edit `MCPServer/Sources/Playground/main.swift` to write test code.
 
-## 라이선스
+## License
 
 MIT

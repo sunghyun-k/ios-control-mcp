@@ -5,12 +5,12 @@ import IOSControlClient
 struct LaunchAppTool: MCPTool {
     static let name = "launch_app"
 
-    static let description = "번들 ID로 앱을 실행합니다. 번들 ID는 list_apps로 확인하세요."
+    static let description = "Launches an app by bundle ID. Use list_apps to find bundle IDs."
 
     static let inputSchema: Value = .object([
         "type": .string("object"),
         "properties": .object([
-            "bundle_id": .object(["type": .string("string"), "description": .string("실행할 앱의 번들 ID")])
+            "bundle_id": .object(["type": .string("string"), "description": .string("Bundle ID of the app to launch")])
         ]),
         "required": .array([.string("bundle_id")])
     ])

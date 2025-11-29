@@ -5,7 +5,7 @@ import IOSControlClient
 struct ScrollTool: MCPTool {
     static let name = "scroll"
 
-    static let description = "화면을 스크롤합니다. down=아래 내용 보기, up=위 내용 보기"
+    static let description = "Scrolls the screen. down=view content below, up=view content above"
 
     static let inputSchema: Value = .object([
         "type": .string("object"),
@@ -13,12 +13,12 @@ struct ScrollTool: MCPTool {
             "direction": .object([
                 "type": .string("string"),
                 "enum": .array([.string("up"), .string("down")]),
-                "description": .string("스크롤 방향. down=아래 내용 보기, up=위 내용 보기")
+                "description": .string("Scroll direction. down=view content below, up=view content above")
             ]),
-            "distance": .object(["type": .string("number"), "description": .string("스크롤 거리(픽셀). 기본값 300")]),
-            "duration": .object(["type": .string("number"), "description": .string("스크롤 시간(초). 기본값 0.3")]),
-            "start_x": .object(["type": .string("number"), "description": .string("시작 X 좌표. 기본값은 화면 중앙")]),
-            "start_y": .object(["type": .string("number"), "description": .string("시작 Y 좌표. 기본값은 화면 중앙")])
+            "distance": .object(["type": .string("number"), "description": .string("Scroll distance in pixels. Default 300")]),
+            "duration": .object(["type": .string("number"), "description": .string("Scroll duration in seconds. Default 0.3")]),
+            "start_x": .object(["type": .string("number"), "description": .string("Start X coordinate. Default is screen center")]),
+            "start_y": .object(["type": .string("number"), "description": .string("Start Y coordinate. Default is screen center")])
         ]),
         "required": .array([.string("direction")])
     ])

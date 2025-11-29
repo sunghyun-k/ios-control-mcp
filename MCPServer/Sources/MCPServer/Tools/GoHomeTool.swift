@@ -5,7 +5,7 @@ import IOSControlClient
 struct GoHomeTool: MCPTool {
     static let name = "go_home"
 
-    static let description = "홈 화면으로 이동합니다."
+    static let description = "Goes to the home screen."
 
     static let inputSchema: Value = .object([
         "type": .string("object"),

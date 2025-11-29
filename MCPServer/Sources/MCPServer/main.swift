@@ -2,17 +2,17 @@ import Foundation
 import MCP
 
 let instructions = """
-iOS 시뮬레이터 및 실제 기기를 자동화하는 도구입니다.
+Tools for automating iOS simulators and real devices.
 
-## 기본 흐름
-1. get_ui_tree로 현재 화면의 UI 요소 확인
-2. tap, input_text 등으로 조작
-3. 필요시 screenshot으로 결과 확인
+## Basic Flow
+1. Use get_ui_tree to check UI elements on the current screen
+2. Interact using tap, input_text, etc.
+3. Use screenshot to verify results if needed
 
-## 주요 팁
-- 시뮬레이터는 자동 선택됩니다. list_devices와 select_device는 실제 기기가 여러 대일 때만 필요합니다.
-- 키보드가 열려 있으면 요소가 가려질 수 있습니다. 키보드 위쪽을 탭하거나 스크롤하여 닫은 후 get_ui_tree를 호출하세요.
-- tap으로 요소를 찾지 못하면 get_ui_tree에서 라벨을 다시 확인하거나, show_coords: true로 좌표를 확인 후 tap_coordinate를 사용하세요.
+## Tips
+- Simulators are auto-selected. list_devices and select_device are only needed when multiple physical devices are connected.
+- When the keyboard is open, elements may be hidden. Tap above the keyboard or scroll to dismiss it, then call get_ui_tree.
+- If tap can't find an element, verify the label in get_ui_tree, or use show_coords: true to get coordinates and use tap_coordinate instead.
 """
 
 let server = await Server(

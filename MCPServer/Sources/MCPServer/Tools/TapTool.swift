@@ -6,15 +6,15 @@ import IOSControlClient
 struct TapTool: MCPTool {
     static let name = "tap"
 
-    static let description = "라벨로 UI 요소를 찾아 탭합니다."
+    static let description = "Finds and taps a UI element by label."
 
     static let inputSchema: Value = .object([
         "type": .string("object"),
         "properties": .object([
-            "label": .object(["type": .string("string"), "description": .string("찾을 요소의 라벨/텍스트. get_ui_tree 결과에서 확인한 텍스트를 사용하세요.")]),
-            "element_type": .object(["type": .string("string"), "description": .string("요소 타입 (예: Button, TextField, StaticText). get_ui_tree에서 확인할 수 있습니다. 동일 라벨의 요소가 여러 타입으로 존재할 때 특정 타입만 찾을 수 있습니다.")]),
-            "index": .object(["type": .string("integer"), "description": .string("동일 라벨(및 타입)이 여러 개일 때 몇 번째 요소인지 지정 (0부터 시작). get_ui_tree에서 라벨#인덱스 형식으로 표시됩니다.")]),
-            "duration": .object(["type": .string("number"), "description": .string("롱프레스 시간(초)")])
+            "label": .object(["type": .string("string"), "description": .string("Label/text of the element to find. Use text from get_ui_tree results.")]),
+            "element_type": .object(["type": .string("string"), "description": .string("Element type (e.g., Button, TextField, StaticText). Check get_ui_tree for available types. Use to filter when same label exists across multiple types.")]),
+            "index": .object(["type": .string("integer"), "description": .string("Index when multiple elements have the same label (and type). 0-based. Shown as label#index in get_ui_tree.")]),
+            "duration": .object(["type": .string("number"), "description": .string("Long press duration in seconds")])
         ]),
         "required": .array([.string("label")])
     ])

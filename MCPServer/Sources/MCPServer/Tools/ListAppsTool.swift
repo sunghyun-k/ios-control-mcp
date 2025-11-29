@@ -5,7 +5,7 @@ import IOSControlClient
 struct ListAppsTool: MCPTool {
     static let name = "list_apps"
 
-    static let description = "설치된 앱들의 번들 ID 목록을 반환합니다. launch_app에서 사용할 번들 ID를 확인할 수 있습니다."
+    static let description = "Returns a list of installed apps' bundle IDs. Use to find bundle IDs for launch_app."
 
     static let inputSchema: Value = .object([
         "type": .string("object"),

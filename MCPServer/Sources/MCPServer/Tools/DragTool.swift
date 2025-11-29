@@ -6,19 +6,19 @@ import IOSControlClient
 struct DragTool: MCPTool {
     static let name = "drag"
 
-    static let description = "라벨로 UI 요소를 찾아 드래그합니다. 리스트 항목 재정렬 시 Reorder 같은 드래그 핸들을 from_label로 선택하세요."
+    static let description = "Finds and drags a UI element by label. For list reordering, select a drag handle like Reorder as from_label."
 
     static let inputSchema: Value = .object([
         "type": .string("object"),
         "properties": .object([
-            "from_label": .object(["type": .string("string"), "description": .string("드래그할 요소의 라벨")]),
-            "from_element_type": .object(["type": .string("string"), "description": .string("드래그할 요소 타입 (예: Button, Cell)")]),
-            "from_index": .object(["type": .string("integer"), "description": .string("동일 라벨(및 타입)이 여러 개일 때 인덱스 (0부터 시작)")]),
-            "to_label": .object(["type": .string("string"), "description": .string("드롭할 위치의 요소 라벨")]),
-            "to_element_type": .object(["type": .string("string"), "description": .string("드롭할 요소 타입 (예: Button, Cell)")]),
-            "to_index": .object(["type": .string("integer"), "description": .string("동일 라벨(및 타입)이 여러 개일 때 인덱스 (0부터 시작)")]),
-            "duration": .object(["type": .string("number"), "description": .string("드래그 이동 시간(초). 기본값 0.3")]),
-            "hold_duration": .object(["type": .string("number"), "description": .string("드래그 시작 전 홀드 시간(초). 기본값 0.5")])
+            "from_label": .object(["type": .string("string"), "description": .string("Label of the element to drag")]),
+            "from_element_type": .object(["type": .string("string"), "description": .string("Element type to drag (e.g., Button, Cell)")]),
+            "from_index": .object(["type": .string("integer"), "description": .string("Index when multiple elements have the same label (and type). 0-based")]),
+            "to_label": .object(["type": .string("string"), "description": .string("Label of the element to drop onto")]),
+            "to_element_type": .object(["type": .string("string"), "description": .string("Element type to drop onto (e.g., Button, Cell)")]),
+            "to_index": .object(["type": .string("integer"), "description": .string("Index when multiple elements have the same label (and type). 0-based")]),
+            "duration": .object(["type": .string("number"), "description": .string("Drag movement duration in seconds. Default 0.3")]),
+            "hold_duration": .object(["type": .string("number"), "description": .string("Hold time before drag starts in seconds. Default 0.5")])
         ]),
         "required": .array([.string("from_label"), .string("to_label")])
     ])

@@ -5,14 +5,14 @@ import IOSControlClient
 struct TapCoordinateTool: MCPTool {
     static let name = "tap_coordinate"
 
-    static let description = "좌표로 직접 탭합니다. tap으로 요소를 찾지 못할 때 사용하세요."
+    static let description = "Taps at specific coordinates. Use when tap cannot find the element."
 
     static let inputSchema: Value = .object([
         "type": .string("object"),
         "properties": .object([
-            "x": .object(["type": .string("number"), "description": .string("X 좌표")]),
-            "y": .object(["type": .string("number"), "description": .string("Y 좌표")]),
-            "duration": .object(["type": .string("number"), "description": .string("롱프레스 시간(초)")])
+            "x": .object(["type": .string("number"), "description": .string("X coordinate")]),
+            "y": .object(["type": .string("number"), "description": .string("Y coordinate")]),
+            "duration": .object(["type": .string("number"), "description": .string("Long press duration in seconds")])
         ]),
         "required": .array([.string("x"), .string("y")])
     ])

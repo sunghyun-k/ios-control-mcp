@@ -5,15 +5,15 @@ import IOSControlClient
 struct PinchTool: MCPTool {
     static let name = "pinch"
 
-    static let description = "핀치 제스처를 수행합니다. scale > 1.0이면 확대, < 1.0이면 축소"
+    static let description = "Performs a pinch gesture. scale > 1.0 zooms in, < 1.0 zooms out"
 
     static let inputSchema: Value = .object([
         "type": .string("object"),
         "properties": .object([
-            "x": .object(["type": .string("number"), "description": .string("핀치 중심 X 좌표. 기본값은 화면 중앙")]),
-            "y": .object(["type": .string("number"), "description": .string("핀치 중심 Y 좌표. 기본값은 화면 중앙")]),
-            "scale": .object(["type": .string("number"), "description": .string("줌 배율. 1.0 미만이면 줌 아웃, 1.0 초과면 줌 인 (예: 2.0은 2배 확대)")]),
-            "velocity": .object(["type": .string("number"), "description": .string("핀치 속도. 기본값 1.0")])
+            "x": .object(["type": .string("number"), "description": .string("Pinch center X coordinate. Default is screen center")]),
+            "y": .object(["type": .string("number"), "description": .string("Pinch center Y coordinate. Default is screen center")]),
+            "scale": .object(["type": .string("number"), "description": .string("Zoom scale. Less than 1.0 zooms out, greater than 1.0 zooms in (e.g., 2.0 = 2x zoom)")]),
+            "velocity": .object(["type": .string("number"), "description": .string("Pinch velocity. Default 1.0")])
         ]),
         "required": .array([.string("scale")])
     ])
