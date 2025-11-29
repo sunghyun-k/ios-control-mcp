@@ -1,11 +1,14 @@
 import Foundation
 import IOSControlClient
 
-print("=== 실기기 USB 연결 테스트 ===\n")
+print("=== 실기기 자동 빌드/실행 테스트 ===\n")
 
-// 1. 기기 목록 확인
+// 1. 환경변수 확인
+let teamId = ProcessInfo.processInfo.environment["IOS_CONTROL_TEAM_ID"]
+print("IOS_CONTROL_TEAM_ID: \(teamId ?? "(not set)")")
+
+// 2. 기기 목록 확인
 let devices = try await DeviceManager.shared.listAllDevices()
-
 let physicals = devices.filter { $0.type == .physical }
 
 print("연결된 실기기: \(physicals.count)개")
@@ -18,44 +21,39 @@ guard let physicalDevice = physicals.first else {
 
 print("✓ 실기기 발견: \(physicalDevice.id)")
 
-// 2. USB 기기 정보 확인
-if let usbInfo = await DeviceManager.shared.getPhysicalDeviceInfo(udid: physicalDevice.id) {
-    print("  - DeviceID: \(usbInfo.deviceID)")
-    print("  - ConnectionType: \(usbInfo.connectionType)")
-    if let productID = usbInfo.productID {
-        print("  - ProductID: \(productID)")
-    }
-}
-
-// 3. USB HTTP 클라이언트로 Agent 연결 시도
-print("\n--- Agent 연결 테스트 ---")
+// 3. 실기기 선택 및 클라이언트 획득 테스트
+print("\n--- 실기기 클라이언트 테스트 ---")
+print("실기기 선택: \(physicalDevice.id)")
 
 do {
-    let usbClient = try await DeviceManager.shared.getUSBHTTPClient(udid: physicalDevice.id)
+    // 실기기 명시적 선택
+    try await DeviceManager.shared.selectDevice(udid: physicalDevice.id)
+    let client = try await DeviceManager.shared.getAgentClient()
+    print("✓ 클라이언트 획득 성공: \(type(of: client))")
 
-    print("Agent 상태 확인 중...")
-    let status = try await usbClient.status()
-    print("✓ Agent 연결 성공!")
-    print("  - UDID: \(status.udid ?? "N/A")")
+    // 서버 상태 확인 (이 시점에서 자동 빌드/실행됨)
+    print("\nAgent 서버 상태 확인 중...")
+    print("(xctestrun이 없으면 자동으로 빌드합니다)")
 
-    // 4. UI Tree 조회
-    print("\nUI Tree 조회 중...")
-    let tree = try await usbClient.tree()
-    let treeString = TreeFormatter.format(tree.tree, showCoords: false)
+    let isRunning = await client.isServerRunning()
+    if isRunning {
+        print("✓ Agent 서버 실행 중")
 
-    print("✓ UI Tree 조회 성공!")
-    print(treeString)
+        let status = try await client.status()
+        print("  - UDID: \(status.udid ?? "N/A")")
 
-} catch USBHTTPError.httpError(let code) {
-    print("❌ HTTP 에러: \(code)")
+        // UI Tree 조회
+        print("\nUI Tree 조회 중...")
+        let tree = try await client.tree()
+        let treeString = TreeFormatter.format(tree.tree, showCoords: false)
+        print("✓ UI Tree 조회 성공!")
+        print(treeString)
+    } else {
+        print("❌ Agent 서버가 실행 중이지 않습니다.")
+    }
+
 } catch {
-    print("❌ Agent 연결 실패: \(error)")
-    print("")
-    print("실기기에서 Agent가 실행 중이지 않습니다.")
-    print("다음 명령어로 Agent를 실행하세요:")
-    print("")
-    print("  make device-agent TEAM=<YOUR_TEAM_ID>")
-    print("  make device-agent-run TEAM=<YOUR_TEAM_ID> DEVICE_UDID=\(physicalDevice.id)")
+    print("❌ 에러: \(error.localizedDescription)")
 }
 
 print("\n=== 테스트 완료 ===")

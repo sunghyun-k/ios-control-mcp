@@ -78,7 +78,7 @@ device-agent-run:
 ifndef DEVICE_UDID
 	$(error DEVICE_UDID가 설정되지 않았습니다. make device-agent-run DEVICE_UDID=<UDID> 형식으로 실행하세요.)
 endif
-	xcodebuild test-without-building \
+	xcodebuild test \
 		-project $(AGENT_PROJECT) \
 		-scheme SimulatorAgent \
 		-destination "id=$(DEVICE_UDID)" \

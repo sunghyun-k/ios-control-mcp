@@ -2,28 +2,37 @@ import Foundation
 import IOSControlClient
 
 /// DeviceAgent 프로세스 관리
-/// 미리 빌드된 xctestrun 파일을 사용하여 실기기에서 테스트 실행
+/// xctestrun 파일이 없으면 자동으로 빌드 후 실행
 actor DeviceAgentRunner {
     static let shared = DeviceAgentRunner()
 
     /// 실행 중인 xcodebuild 프로세스
     private var runningProcess: Process?
 
+    /// 프로젝트 루트 디렉토리
+    private let rootDir: URL
+
     /// 빌드 디렉토리 (xctestrun 파일 위치)
     private let derivedDataPath: String
 
+    /// Xcode 프로젝트 경로
+    private let xcodeProjectPath: String
+
     /// 환경변수 키
     static let xctestrunPathEnvKey = "IOS_CONTROL_DEVICE_XCTESTRUN"
+    static let teamIdEnvKey = "IOS_CONTROL_TEAM_ID"
 
     init() {
-        // MCP 서버 실행 위치 기준으로 빌드 디렉토리 찾기
+        // MCP 서버 실행 위치 기준으로 프로젝트 루트 찾기
         let executablePath = URL(fileURLWithPath: CommandLine.arguments[0]).resolvingSymlinksInPath()
-        let rootDir = executablePath
+        let root = executablePath
             .deletingLastPathComponent()  // MCPServer
             .deletingLastPathComponent()  // .build
             .deletingLastPathComponent()  // ios-control-mcp
 
-        self.derivedDataPath = rootDir.appendingPathComponent(".build/DeviceAgent").path
+        self.rootDir = root
+        self.derivedDataPath = root.appendingPathComponent(".build/DeviceAgent").path
+        self.xcodeProjectPath = root.appendingPathComponent("SimulatorAgent/SimulatorAgent.xcodeproj").path
     }
 
     // MARK: - Public
@@ -38,9 +47,16 @@ actor DeviceAgentRunner {
         // 기존 프로세스 정리
         stop()
 
-        // xctestrun 파일 찾기
-        guard let xctestrunPath = findXctestrun() else {
-            throw DeviceAgentError.xctestrunNotFound
+        // xctestrun 파일 찾기, 없으면 빌드
+        var xctestrunPath = findXctestrun()
+        if xctestrunPath == nil {
+            // 빌드 시도
+            try await buildAgent()
+            xctestrunPath = findXctestrun()
+        }
+
+        guard let xctestrunPath else {
+            throw DeviceAgentError.buildFailed("xctestrun file not found after build")
         }
 
         // 테스트 실행 (test-without-building -xctestrun)
@@ -48,6 +64,52 @@ actor DeviceAgentRunner {
 
         // 서버 시작 대기
         try await waitForServer(udid: udid, timeout: timeout)
+    }
+
+    /// TEAM ID 가져오기 (환경변수)
+    private func getTeamId() -> String? {
+        ProcessInfo.processInfo.environment[Self.teamIdEnvKey]
+    }
+
+    /// Agent 빌드 (build-for-testing)
+    private func buildAgent() async throws {
+        guard let teamId = getTeamId() else {
+            throw DeviceAgentError.teamIdRequired
+        }
+
+        // Xcode 프로젝트 존재 확인
+        guard FileManager.default.fileExists(atPath: xcodeProjectPath) else {
+            throw DeviceAgentError.xcodeProjectNotFound(xcodeProjectPath)
+        }
+
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/xcodebuild")
+        process.arguments = [
+            "build-for-testing",
+            "-project", xcodeProjectPath,
+            "-scheme", "SimulatorAgent",
+            "-destination", "generic/platform=iOS",
+            "-derivedDataPath", derivedDataPath,
+            "DEVELOPMENT_TEAM=\(teamId)",
+            "CODE_SIGN_STYLE=Automatic"
+        ]
+
+        // 빌드 출력을 stderr로 전달 (MCP 프로토콜은 stdout 사용)
+        process.standardOutput = FileHandle.standardError
+        process.standardError = FileHandle.standardError
+
+        do {
+            try process.run()
+            process.waitUntilExit()
+
+            if process.terminationStatus != 0 {
+                throw DeviceAgentError.buildFailed("xcodebuild exited with code \(process.terminationStatus)")
+            }
+        } catch let error as DeviceAgentError {
+            throw error
+        } catch {
+            throw DeviceAgentError.buildFailed(error.localizedDescription)
+        }
     }
 
     /// xctestrun 파일 찾기
@@ -152,15 +214,30 @@ actor DeviceAgentRunner {
 // MARK: - Errors
 
 enum DeviceAgentError: Error, LocalizedError {
-    case xctestrunNotFound
+    case teamIdRequired
+    case xcodeProjectNotFound(String)
+    case buildFailed(String)
     case launchFailed(String)
     case processTerminated(Int32)
     case timeout(TimeInterval)
 
     var errorDescription: String? {
         switch self {
-        case .xctestrunNotFound:
-            return "Device agent not found. Run 'make device-agent' first."
+        case .teamIdRequired:
+            return """
+                Physical device requires Apple Developer Team ID.
+                Set the IOS_CONTROL_TEAM_ID environment variable.
+
+                Example (MCP config):
+                  "env": { "IOS_CONTROL_TEAM_ID": "YOUR_TEAM_ID" }
+
+                Find your Team ID:
+                  security find-identity -v -p codesigning | head -1
+                """
+        case .xcodeProjectNotFound(let path):
+            return "Xcode project not found at: \(path)"
+        case .buildFailed(let reason):
+            return "Failed to build device agent: \(reason)"
         case .launchFailed(let reason):
             return "Failed to launch device agent: \(reason)"
         case .processTerminated(let code):
