@@ -14,11 +14,13 @@ public actor DeviceManager {
     public static let physicalDevicePortEnd: UInt16 = 47179
 
     private let simctlRunner = SimctlRunner.shared
+    private let deviceCtlRunner = DeviceCtlRunner.shared
     private let usbMuxClient = USBMuxClient()
 
     private var currentDeviceId: String?
     private var isListeningUSB = false
     private var physicalDevices: [String: USBMuxDeviceInfo] = [:]  // UDID -> Info
+    private var deviceCtlCache: [String: DeviceCtlDeviceInfo] = [:]  // UDID -> DeviceCtl Info
 
     private init() {}
 
@@ -46,6 +48,9 @@ public actor DeviceManager {
 
     /// 실기기만 조회
     public func listPhysicalDevices() async throws -> [DeviceInfo] {
+        // devicectl로 실기기 정보 조회 및 캐시 갱신
+        try await refreshDeviceCtlCache()
+
         // USB 리스닝이 시작되지 않았으면 시작하고 기기 이벤트 수신 대기
         if !isListeningUSB {
             try await startUSBListening()
@@ -53,16 +58,45 @@ public actor DeviceManager {
             try await Task.sleep(for: .milliseconds(500))
         }
 
-        // 현재 캐시된 기기 목록 반환
-        return physicalDevices.values.map { info in
-            DeviceInfo(
-                id: info.serialNumber,
-                name: "iOS Device",  // 실기기는 이름을 별도로 가져와야 함
-                type: .physical,
-                isConnected: true,
-                osVersion: nil,
-                model: nil
-            )
+        // 현재 캐시된 기기 목록에 devicectl 정보 병합
+        return physicalDevices.values.map { usbInfo in
+            let udid = usbInfo.serialNumber
+
+            // devicectl 캐시에서 추가 정보 조회
+            if let deviceCtlInfo = deviceCtlCache[udid] {
+                return DeviceInfo(
+                    id: udid,
+                    name: deviceCtlInfo.name,
+                    type: .physical,
+                    isConnected: deviceCtlInfo.isConnected,
+                    osVersion: deviceCtlInfo.osVersion,
+                    model: deviceCtlInfo.model
+                )
+            } else {
+                // devicectl 정보가 없는 경우 기본값
+                return DeviceInfo(
+                    id: udid,
+                    name: "iOS Device",
+                    type: .physical,
+                    isConnected: true,
+                    osVersion: nil,
+                    model: nil
+                )
+            }
+        }
+    }
+
+    /// devicectl 캐시 갱신
+    private func refreshDeviceCtlCache() async throws {
+        // devicectl은 동기 명령이므로 백그라운드에서 실행
+        let devices = try await Task.detached {
+            try DeviceCtlRunner.shared.listDevices()
+        }.value
+
+        // UDID 기반으로 캐시 갱신
+        deviceCtlCache.removeAll()
+        for device in devices {
+            deviceCtlCache[device.hardwareUdid] = device
         }
     }
 
