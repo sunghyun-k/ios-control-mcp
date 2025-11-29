@@ -75,6 +75,7 @@ endif
 		-scheme AutomationServer \
 		-destination 'generic/platform=iOS' \
 		-derivedDataPath $(DEVICE_AGENT_BUILD_DIR) \
+		-allowProvisioningUpdates \
 		DEVELOPMENT_TEAM=$(TEAM) \
 		CODE_SIGN_STYLE=Automatic \
 		PRODUCT_BUNDLE_IDENTIFIER=com.$(TEAM).ios-control-agent
@@ -93,6 +94,7 @@ endif
 		-destination "id=$(DEVICE_UDID)" \
 		-derivedDataPath $(DEVICE_AGENT_BUILD_DIR) \
 		-only-testing:AutomationServerTests/AutomationServerTests/testRunServer \
+		-allowProvisioningUpdates \
 		DEVELOPMENT_TEAM=$(TEAM) \
 		CODE_SIGN_STYLE=Automatic \
 		PRODUCT_BUNDLE_IDENTIFIER=com.$(TEAM).ios-control-agent
