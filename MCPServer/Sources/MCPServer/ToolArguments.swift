@@ -26,8 +26,16 @@ struct EmptyArgs: ToolArguments {
 
 struct TapArgs: ToolArguments {
     let label: String
+    let elementType: String?
     let index: Int?
     let duration: Double?
+
+    private enum CodingKeys: String, CodingKey {
+        case label
+        case elementType = "element_type"
+        case index
+        case duration
+    }
 }
 
 // MARK: - tap_coordinate
@@ -113,16 +121,20 @@ struct PinchArgs: ToolArguments {
 
 struct DragArgs: ToolArguments {
     let fromLabel: String
+    let fromElementType: String?
     let fromIndex: Int?
     let toLabel: String
+    let toElementType: String?
     let toIndex: Int?
     let duration: Double?
     let holdDuration: Double?
 
     private enum CodingKeys: String, CodingKey {
         case fromLabel = "from_label"
+        case fromElementType = "from_element_type"
         case fromIndex = "from_index"
         case toLabel = "to_label"
+        case toElementType = "to_element_type"
         case toIndex = "to_index"
         case duration
         case holdDuration = "hold_duration"

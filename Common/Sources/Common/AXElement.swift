@@ -60,7 +60,7 @@ public struct AXFrame: Codable, Sendable {
 extension AXElement {
     /// 라벨로 요소 찾기 (재귀적)
     public func findElement(byLabel label: String) -> AXElement? {
-        findElement(byLabel: label, index: nil)
+        findElement(byLabel: label, type: nil, index: nil)
     }
 
     /// 라벨과 인덱스로 요소 찾기 (재귀적)
@@ -68,12 +68,24 @@ extension AXElement {
     ///   - label: 찾을 라벨
     ///   - index: 동일 라벨 중 몇 번째인지 (0부터 시작). nil이면 첫 번째 요소 반환
     public func findElement(byLabel label: String, index: Int?) -> AXElement? {
-        var counter = 0
-        return findElementRecursive(byLabel: label, targetIndex: index ?? 0, counter: &counter)
+        findElement(byLabel: label, type: nil, index: index)
     }
 
-    private func findElementRecursive(byLabel label: String, targetIndex: Int, counter: inout Int) -> AXElement? {
-        if self.label == label {
+    /// 라벨, 타입, 인덱스로 요소 찾기 (재귀적)
+    /// - Parameters:
+    ///   - label: 찾을 라벨
+    ///   - type: 요소 타입 (예: Button, TextField). nil이면 타입 무시
+    ///   - index: 동일 조건 중 몇 번째인지 (0부터 시작). nil이면 첫 번째 요소 반환
+    public func findElement(byLabel label: String, type: String?, index: Int?) -> AXElement? {
+        var counter = 0
+        return findElementRecursive(byLabel: label, type: type, targetIndex: index ?? 0, counter: &counter)
+    }
+
+    private func findElementRecursive(byLabel label: String, type: String?, targetIndex: Int, counter: inout Int) -> AXElement? {
+        let labelMatches = self.label == label
+        let typeMatches = type == nil || self.type == type
+
+        if labelMatches && typeMatches {
             if counter == targetIndex {
                 return self
             }
@@ -82,7 +94,7 @@ extension AXElement {
 
         if let children = children {
             for child in children {
-                if let found = child.findElementRecursive(byLabel: label, targetIndex: targetIndex, counter: &counter) {
+                if let found = child.findElementRecursive(byLabel: label, type: type, targetIndex: targetIndex, counter: &counter) {
                     return found
                 }
             }

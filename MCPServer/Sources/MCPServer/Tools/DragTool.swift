@@ -12,9 +12,11 @@ struct DragTool: MCPTool {
         "type": .string("object"),
         "properties": .object([
             "from_label": .object(["type": .string("string"), "description": .string("드래그할 요소의 라벨")]),
-            "from_index": .object(["type": .string("integer"), "description": .string("동일 라벨이 여러 개일 때 인덱스 (0부터 시작)")]),
+            "from_element_type": .object(["type": .string("string"), "description": .string("드래그할 요소 타입 (예: Button, Cell)")]),
+            "from_index": .object(["type": .string("integer"), "description": .string("동일 라벨(및 타입)이 여러 개일 때 인덱스 (0부터 시작)")]),
             "to_label": .object(["type": .string("string"), "description": .string("드롭할 위치의 요소 라벨")]),
-            "to_index": .object(["type": .string("integer"), "description": .string("동일 라벨이 여러 개일 때 인덱스 (0부터 시작)")]),
+            "to_element_type": .object(["type": .string("string"), "description": .string("드롭할 요소 타입 (예: Button, Cell)")]),
+            "to_index": .object(["type": .string("integer"), "description": .string("동일 라벨(및 타입)이 여러 개일 때 인덱스 (0부터 시작)")]),
             "duration": .object(["type": .string("number"), "description": .string("드래그 이동 시간(초). 기본값 0.3")]),
             "hold_duration": .object(["type": .string("number"), "description": .string("드래그 시작 전 홀드 시간(초). 기본값 0.5")])
         ]),
@@ -28,15 +30,13 @@ struct DragTool: MCPTool {
         let response = try await client.tree(appBundleId: appBundleId)
 
         // from 요소 찾기
-        guard let fromElement = response.tree.findElement(byLabel: args.fromLabel, index: args.fromIndex) else {
-            let label = args.fromIndex != nil ? "\(args.fromLabel)#\(args.fromIndex!)" : args.fromLabel
-            throw IOSControlError.elementNotFound(label)
+        guard let fromElement = response.tree.findElement(byLabel: args.fromLabel, type: args.fromElementType, index: args.fromIndex) else {
+            throw IOSControlError.elementNotFound(formatElementQuery(label: args.fromLabel, type: args.fromElementType, index: args.fromIndex))
         }
 
         // to 요소 찾기
-        guard let toElement = response.tree.findElement(byLabel: args.toLabel, index: args.toIndex) else {
-            let label = args.toIndex != nil ? "\(args.toLabel)#\(args.toIndex!)" : args.toLabel
-            throw IOSControlError.elementNotFound(label)
+        guard let toElement = response.tree.findElement(byLabel: args.toLabel, type: args.toElementType, index: args.toIndex) else {
+            throw IOSControlError.elementNotFound(formatElementQuery(label: args.toLabel, type: args.toElementType, index: args.toIndex))
         }
 
         let fromCenter = fromElement.frame.center
@@ -54,8 +54,19 @@ struct DragTool: MCPTool {
             liftDelay: GestureDefaults.liftDelay
         )
 
-        let fromDesc = args.fromIndex != nil ? "\"\(args.fromLabel)\"#\(args.fromIndex!)" : "\"\(args.fromLabel)\""
-        let toDesc = args.toIndex != nil ? "\"\(args.toLabel)\"#\(args.toIndex!)" : "\"\(args.toLabel)\""
+        let fromDesc = formatElementQuery(label: args.fromLabel, type: args.fromElementType, index: args.fromIndex)
+        let toDesc = formatElementQuery(label: args.toLabel, type: args.toElementType, index: args.toIndex)
         return [.text("dragged \(fromDesc) to \(toDesc)")]
+    }
+
+    private static func formatElementQuery(label: String, type: String?, index: Int?) -> String {
+        var result = "\"\(label)\""
+        if let type = type {
+            result = "[\(type)] \(result)"
+        }
+        if let index = index {
+            result += "#\(index)"
+        }
+        return result
     }
 }
