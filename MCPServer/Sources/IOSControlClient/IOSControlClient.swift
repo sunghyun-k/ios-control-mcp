@@ -5,12 +5,14 @@ import Common
 public final class IOSControlClient: @unchecked Sendable {
     private let baseURL: URL
     private let session: URLSession
+    private let simctl: SimctlRunner
 
-    public init(host: String = "127.0.0.1", port: Int = 22087) {
+    public init(host: String = "127.0.0.1", port: Int = 22087, httpTimeout: TimeInterval = 30) {
         self.baseURL = URL(string: "http://\(host):\(port)")!
         let config = URLSessionConfiguration.default
-        config.timeoutIntervalForRequest = 30
+        config.timeoutIntervalForRequest = httpTimeout
         self.session = URLSession(configuration: config)
+        self.simctl = SimctlRunner()
     }
 
     // MARK: - Private
@@ -99,48 +101,9 @@ public final class IOSControlClient: @unchecked Sendable {
 
     /// 설치된 앱 목록 조회 (simctl 사용, Agent에서 UDID 가져옴)
     public func listApps() async throws -> ListAppsResponse {
-        // Agent에서 시뮬레이터 UDID 가져오기
-        let statusResponse = try await status()
-        guard let udid = statusResponse.udid else {
-            throw IOSControlError.invalidResponse
-        }
-
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")
-        process.arguments = ["simctl", "listapps", udid]
-
-        let pipe = Pipe()
-        process.standardOutput = pipe
-        process.standardError = FileHandle.nullDevice
-
-        try process.run()
-        process.waitUntilExit()
-
-        let data = pipe.fileHandleForReading.readDataToEndOfFile()
-
-        // plist를 JSON으로 변환
-        let plutil = Process()
-        plutil.executableURL = URL(fileURLWithPath: "/usr/bin/plutil")
-        plutil.arguments = ["-convert", "json", "-o", "-", "-"]
-
-        let inputPipe = Pipe()
-        let outputPipe = Pipe()
-        plutil.standardInput = inputPipe
-        plutil.standardOutput = outputPipe
-        plutil.standardError = FileHandle.nullDevice
-
-        try plutil.run()
-        inputPipe.fileHandleForWriting.write(data)
-        inputPipe.fileHandleForWriting.closeFile()
-        plutil.waitUntilExit()
-
-        let jsonData = outputPipe.fileHandleForReading.readDataToEndOfFile()
-
-        guard let json = try JSONSerialization.jsonObject(with: jsonData) as? [String: Any] else {
-            throw IOSControlError.invalidResponse
-        }
-
-        let bundleIds = json.keys.sorted()
+        let udid = try await getSimulatorUDID()
+        let apps = try simctl.listApps(deviceId: udid)
+        let bundleIds = apps.compactMap { $0["CFBundleIdentifier"] as? String }.sorted()
         return ListAppsResponse(bundleIds: bundleIds)
     }
 
@@ -192,79 +155,29 @@ public final class IOSControlClient: @unchecked Sendable {
         return udid
     }
 
-    /// simctl 명령 실행 (내부 헬퍼)
-    private func runSimctl(_ arguments: [String]) throws {
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")
-        process.arguments = ["simctl"] + arguments
-        process.standardOutput = FileHandle.nullDevice
-        process.standardError = FileHandle.nullDevice
-
-        try process.run()
-        process.waitUntilExit()
-
-        if process.terminationStatus != 0 {
-            throw IOSControlError.simctlError(process.terminationStatus)
-        }
-    }
-
-    /// simctl 명령 실행 후 출력 반환 (내부 헬퍼)
-    private func runSimctlWithOutput(_ arguments: [String]) throws -> String {
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")
-        process.arguments = ["simctl"] + arguments
-
-        let pipe = Pipe()
-        process.standardOutput = pipe
-        process.standardError = FileHandle.nullDevice
-
-        try process.run()
-        process.waitUntilExit()
-
-        let data = pipe.fileHandleForReading.readDataToEndOfFile()
-        return String(data: data, encoding: .utf8) ?? ""
-    }
-
     /// URL 열기
     public func openURL(_ url: String) async throws {
         let udid = try await getSimulatorUDID()
-        try runSimctl(["openurl", udid, url])
+        try simctl.openURL(deviceId: udid, url: url)
     }
 
     /// 앱 종료
     public func terminateApp(bundleId: String) async throws {
         let udid = try await getSimulatorUDID()
-        try runSimctl(["terminate", udid, bundleId])
+        simctl.terminateApp(deviceId: udid, bundleId: bundleId)
     }
 
     /// 클립보드 내용 가져오기
     public func getPasteboard() async throws -> GetPasteboardResponse {
         let udid = try await getSimulatorUDID()
-        let content = try runSimctlWithOutput(["pbpaste", udid])
+        let content = try simctl.getPasteboard(deviceId: udid)
         return GetPasteboardResponse(content: content.isEmpty ? nil : content)
     }
 
     /// 클립보드에 내용 설정
     public func setPasteboard(_ content: String) async throws {
         let udid = try await getSimulatorUDID()
-
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")
-        process.arguments = ["simctl", "pbcopy", udid]
-
-        let inputPipe = Pipe()
-        process.standardInput = inputPipe
-        process.standardOutput = FileHandle.nullDevice
-        process.standardError = FileHandle.nullDevice
-
-        try process.run()
-        inputPipe.fileHandleForWriting.write(content.data(using: .utf8)!)
-        inputPipe.fileHandleForWriting.closeFile()
-        process.waitUntilExit()
-
-        if process.terminationStatus != 0 {
-            throw IOSControlError.simctlError(process.terminationStatus)
-        }
+        try simctl.setPasteboard(deviceId: udid, content: content)
     }
 
     /// 핀치 제스처

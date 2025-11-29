@@ -1,20 +1,21 @@
 import Foundation
+import Common
+import IOSControlClient
 
 /// SimulatorAgent 프로세스 관리
 /// 빌드된 .app을 시뮬레이터에 설치하고 실행
 actor SimulatorAgentRunner {
     static let shared = SimulatorAgentRunner()
 
-    private static let appName = "SimulatorAgentTests-Runner.app"
-    private static let bundleId = "simulatoragent.SimulatorAgentTests.xctrunner"
-
-    private let port: Int
+    private let config: Configuration
+    private let simctl: SimctlRunner
 
     /// 현재 사용 중인 시뮬레이터 ID
     private var currentDeviceId: String?
 
-    init(port: Int = 22087) {
-        self.port = port
+    init(config: Configuration = .default) {
+        self.config = config
+        self.simctl = SimctlRunner()
     }
 
     // MARK: - Simulator Device Info
@@ -36,7 +37,9 @@ actor SimulatorAgentRunner {
     // MARK: - Public
 
     /// 서버 시작 (이미 실행 중이면 무시)
-    func start(deviceId: String? = nil, timeout: TimeInterval = 60) async throws {
+    func start(deviceId: String? = nil, timeout: TimeInterval? = nil) async throws {
+        let serverTimeout = timeout ?? config.serverStartTimeout
+
         // 이미 실행 중인지 확인 (실제 서버 응답 기준)
         if await isRunning() {
             return
@@ -44,7 +47,7 @@ actor SimulatorAgentRunner {
 
         // app 경로 찾기
         guard let appPath = findAgentApp() else {
-            throw SimulatorAgentRunnerError.appNotFound
+            throw IOSControlError.simctlAppNotFound
         }
 
         // 시뮬레이터 선택 및 부팅
@@ -52,29 +55,28 @@ actor SimulatorAgentRunner {
         self.currentDeviceId = targetDeviceId
 
         // 앱 설치
-        try installApp(appPath: appPath, deviceId: targetDeviceId)
+        try simctl.installApp(deviceId: targetDeviceId, appPath: appPath.path)
 
         // 앱 실행
-        try launchApp(deviceId: targetDeviceId)
+        try simctl.launchApp(deviceId: targetDeviceId, bundleId: config.agentBundleId)
 
         // 서버 시작 대기
-        try await waitForServer(timeout: timeout)
+        try await waitForServer(timeout: serverTimeout)
     }
 
     /// 서버 중지
     func stop() {
         guard let deviceId = currentDeviceId else { return }
-        terminateApp(deviceId: deviceId)
+        simctl.terminateApp(deviceId: deviceId, bundleId: config.agentBundleId)
     }
 
     /// 서버가 실행 중인지 확인 (실제 HTTP 응답 기준)
     func isRunning() async -> Bool {
-        let url = URL(string: "http://127.0.0.1:\(port)/status")!
         do {
-            let config = URLSessionConfiguration.default
-            config.timeoutIntervalForRequest = 1
-            let session = URLSession(configuration: config)
-            let (_, response) = try await session.data(from: url)
+            let urlConfig = URLSessionConfiguration.default
+            urlConfig.timeoutIntervalForRequest = config.statusCheckTimeout
+            let session = URLSession(configuration: urlConfig)
+            let (_, response) = try await session.data(from: config.statusURL)
             if let httpResponse = response as? HTTPURLResponse {
                 return httpResponse.statusCode == 200
             }
@@ -92,7 +94,7 @@ actor SimulatorAgentRunner {
         let fm = FileManager.default
 
         // 1. 환경변수
-        if let envPath = ProcessInfo.processInfo.environment["IOS_CONTROL_AGENT_APP"] {
+        if let envPath = ProcessInfo.processInfo.environment[Configuration.agentAppPathEnvKey] {
             let url = URL(fileURLWithPath: envPath)
             if fm.fileExists(atPath: url.path) {
                 return url
@@ -103,7 +105,7 @@ actor SimulatorAgentRunner {
         // 2. 실행파일과 같은 디렉토리
         let executablePath = URL(fileURLWithPath: CommandLine.arguments[0]).resolvingSymlinksInPath()
         let executableDir = executablePath.deletingLastPathComponent()
-        let appPath = executableDir.appendingPathComponent(Self.appName)
+        let appPath = executableDir.appendingPathComponent(config.agentAppName)
         if fm.fileExists(atPath: appPath.path) {
             return appPath
         }
@@ -111,76 +113,31 @@ actor SimulatorAgentRunner {
         return nil
     }
 
-    // MARK: - App Lifecycle
-
-    /// 앱 설치
-    private func installApp(appPath: URL, deviceId: String) throws {
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")
-        process.arguments = ["simctl", "install", deviceId, appPath.path]
-        process.standardOutput = FileHandle.nullDevice
-        process.standardError = FileHandle.nullDevice
-
-        try process.run()
-        process.waitUntilExit()
-
-        if process.terminationStatus != 0 {
-            throw SimulatorAgentRunnerError.installFailed(Int(process.terminationStatus))
-        }
-    }
-
-    /// 앱 실행
-    private func launchApp(deviceId: String) throws {
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")
-        process.arguments = ["simctl", "launch", deviceId, Self.bundleId]
-        process.standardOutput = FileHandle.nullDevice
-        process.standardError = FileHandle.nullDevice
-
-        try process.run()
-        process.waitUntilExit()
-
-        if process.terminationStatus != 0 {
-            throw SimulatorAgentRunnerError.launchFailed(Int(process.terminationStatus))
-        }
-    }
-
-    /// 앱 종료
-    private func terminateApp(deviceId: String) {
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")
-        process.arguments = ["simctl", "terminate", deviceId, Self.bundleId]
-        process.standardOutput = FileHandle.nullDevice
-        process.standardError = FileHandle.nullDevice
-
-        try? process.run()
-        process.waitUntilExit()
-    }
-
     // MARK: - Simulator
 
     /// 시뮬레이터 부팅 보장 (이미 부팅되어 있으면 해당 ID 반환, 없으면 최적의 시뮬레이터 선택 후 부팅)
     private func ensureSimulatorBooted(preferredDeviceId: String?) async throws -> String {
         // 1. 이미 부팅된 시뮬레이터가 있으면 사용
-        if let bootedId = getBootedSimulator() {
+        let bootedSimulators = simctl.getBootedSimulators()
+        if let bootedId = bootedSimulators.first {
             return bootedId
         }
 
         // 2. 선호하는 device ID가 있으면 해당 시뮬레이터 부팅
         if let deviceId = preferredDeviceId {
-            try bootSimulator(deviceId: deviceId)
-            try await waitForSimulatorBoot(deviceId: deviceId, timeout: 60)
+            try simctl.bootSimulator(deviceId: deviceId)
+            try await waitForSimulatorBoot(deviceId: deviceId)
             return deviceId
         }
 
         // 3. 최적의 시뮬레이터 선택 (가장 높은 iOS 버전의 iPhone)
         guard let bestDevice = findBestIPhoneSimulator() else {
-            throw SimulatorAgentRunnerError.noSimulatorFound
+            throw IOSControlError.simulatorNotFound
         }
 
         // 4. 선택된 시뮬레이터 부팅
-        try bootSimulator(deviceId: bestDevice.udid)
-        try await waitForSimulatorBoot(deviceId: bestDevice.udid, timeout: 60)
+        try simctl.bootSimulator(deviceId: bestDevice.udid)
+        try await waitForSimulatorBoot(deviceId: bestDevice.udid)
 
         return bestDevice.udid
     }
@@ -212,19 +169,8 @@ actor SimulatorAgentRunner {
 
     /// 시뮬레이터 런타임 및 디바이스 목록 조회
     private func listSimulatorRuntimes() -> [SimulatorRuntime] {
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")
-        process.arguments = ["simctl", "list", "devices", "-j"]
-
-        let pipe = Pipe()
-        process.standardOutput = pipe
-        process.standardError = FileHandle.nullDevice
-
         do {
-            try process.run()
-            process.waitUntilExit()
-
-            let data = pipe.fileHandleForReading.readDataToEndOfFile()
+            let data = try simctl.listDevicesJSON()
             guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
                   let devices = json["devices"] as? [String: [[String: Any]]] else {
                 return []
@@ -279,29 +225,14 @@ actor SimulatorAgentRunner {
         return (major: parts[0], minor: parts[1])
     }
 
-    /// 시뮬레이터 부팅
-    private func bootSimulator(deviceId: String) throws {
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")
-        process.arguments = ["simctl", "boot", deviceId]
-        process.standardOutput = FileHandle.nullDevice
-        process.standardError = FileHandle.nullDevice
-
-        try process.run()
-        process.waitUntilExit()
-
-        // exit code 149는 이미 부팅된 상태를 의미
-        if process.terminationStatus != 0 && process.terminationStatus != 149 {
-            throw SimulatorAgentRunnerError.bootFailed(deviceId, Int(process.terminationStatus))
-        }
-    }
-
     /// 시뮬레이터 부팅 완료 대기
-    private func waitForSimulatorBoot(deviceId: String, timeout: TimeInterval) async throws {
+    private func waitForSimulatorBoot(deviceId: String) async throws {
+        let timeout = config.simulatorBootTimeout
         let startTime = Date()
 
         while Date().timeIntervalSince(startTime) < timeout {
-            if let bootedId = getBootedSimulator(), bootedId == deviceId {
+            let bootedSimulators = simctl.getBootedSimulators()
+            if bootedSimulators.contains(deviceId) {
                 // 부팅 완료 후 약간의 안정화 시간
                 try await Task.sleep(nanoseconds: 2_000_000_000) // 2초
                 return
@@ -309,42 +240,7 @@ actor SimulatorAgentRunner {
             try await Task.sleep(nanoseconds: 500_000_000) // 0.5초
         }
 
-        throw SimulatorAgentRunnerError.bootTimeout(deviceId, timeout)
-    }
-
-    /// 부팅된 시뮬레이터 ID 가져오기
-    private func getBootedSimulator() -> String? {
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")
-        process.arguments = ["simctl", "list", "devices", "booted", "-j"]
-
-        let pipe = Pipe()
-        process.standardOutput = pipe
-        process.standardError = FileHandle.nullDevice
-
-        do {
-            try process.run()
-            process.waitUntilExit()
-
-            let data = pipe.fileHandleForReading.readDataToEndOfFile()
-            guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-                  let devices = json["devices"] as? [String: [[String: Any]]] else {
-                return nil
-            }
-
-            for (_, deviceList) in devices {
-                for device in deviceList {
-                    if device["state"] as? String == "Booted",
-                       let udid = device["udid"] as? String {
-                        return udid
-                    }
-                }
-            }
-        } catch {
-            return nil
-        }
-
-        return nil
+        throw IOSControlError.simulatorBootTimeout(udid: deviceId, timeout: timeout)
     }
 
     // MARK: - Server Wait
@@ -352,11 +248,10 @@ actor SimulatorAgentRunner {
     /// 서버 시작 대기
     private func waitForServer(timeout: TimeInterval) async throws {
         let startTime = Date()
-        let url = URL(string: "http://127.0.0.1:\(port)/status")!
 
         while Date().timeIntervalSince(startTime) < timeout {
             do {
-                let (_, response) = try await URLSession.shared.data(from: url)
+                let (_, response) = try await URLSession.shared.data(from: config.statusURL)
                 if let httpResponse = response as? HTTPURLResponse,
                    httpResponse.statusCode == 200 {
                     return
@@ -370,37 +265,6 @@ actor SimulatorAgentRunner {
 
         // 타임아웃
         stop()
-        throw SimulatorAgentRunnerError.timeout(timeout)
-    }
-}
-
-// MARK: - Errors
-
-enum SimulatorAgentRunnerError: LocalizedError {
-    case appNotFound
-    case installFailed(Int)
-    case launchFailed(Int)
-    case timeout(TimeInterval)
-    case noSimulatorFound
-    case bootFailed(String, Int)
-    case bootTimeout(String, TimeInterval)
-
-    var errorDescription: String? {
-        switch self {
-        case .appNotFound:
-            return "SimulatorAgentTests-Runner.app not found. Build with 'make agent' or set IOS_CONTROL_AGENT_APP environment variable."
-        case .installFailed(let exitCode):
-            return "Failed to install app. Exit code: \(exitCode)"
-        case .launchFailed(let exitCode):
-            return "Failed to launch app. Exit code: \(exitCode)"
-        case .timeout(let seconds):
-            return "SimulatorAgent did not start within \(Int(seconds)) seconds."
-        case .noSimulatorFound:
-            return "No available iPhone simulator found. Please create an iPhone simulator."
-        case .bootFailed(let deviceId, let exitCode):
-            return "Failed to boot simulator \(deviceId). Exit code: \(exitCode)"
-        case .bootTimeout(let deviceId, let timeout):
-            return "Simulator \(deviceId) did not boot within \(Int(timeout)) seconds."
-        }
+        throw IOSControlError.serverTimeout(timeout)
     }
 }

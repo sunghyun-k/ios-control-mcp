@@ -1,0 +1,21 @@
+import Foundation
+import MCP
+import IOSControlClient
+
+struct GoHomeTool: MCPTool {
+    static let name = "go_home"
+
+    static let description = "홈 화면으로 이동합니다. 현재 앱을 종료하고 홈 화면으로 돌아갑니다."
+
+    static let inputSchema: Value = .object([
+        "type": .string("object"),
+        "properties": .object([:])
+    ])
+
+    typealias Arguments = EmptyArgs
+
+    static func execute(args: EmptyArgs, client: IOSControlClient) async throws -> [Tool.Content] {
+        try await client.goHome()
+        return [.text("pressed home button")]
+    }
+}

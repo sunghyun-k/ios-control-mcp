@@ -1,0 +1,29 @@
+import Foundation
+import MCP
+import IOSControlClient
+
+struct SwipeTool: MCPTool {
+    static let name = "swipe"
+
+    static let description = "iOS 시뮬레이터 화면에서 스와이프를 수행합니다."
+
+    static let inputSchema: Value = .object([
+        "type": .string("object"),
+        "properties": .object([
+            "start_x": .object(["type": .string("number"), "description": .string("시작 X 좌표")]),
+            "start_y": .object(["type": .string("number"), "description": .string("시작 Y 좌표")]),
+            "end_x": .object(["type": .string("number"), "description": .string("끝 X 좌표")]),
+            "end_y": .object(["type": .string("number"), "description": .string("끝 Y 좌표")]),
+            "duration": .object(["type": .string("number"), "description": .string("스와이프 시간(초)")])
+        ]),
+        "required": .array([.string("start_x"), .string("start_y"), .string("end_x"), .string("end_y")])
+    ])
+
+    typealias Arguments = SwipeArgs
+
+    static func execute(args: SwipeArgs, client: IOSControlClient) async throws -> [Tool.Content] {
+        let duration = args.duration ?? 0.5
+        try await client.swipe(startX: args.startX, startY: args.startY, endX: args.endX, endY: args.endY, duration: duration)
+        return [.text("swiped (\(args.startX), \(args.startY)) -> (\(args.endX), \(args.endY))")]
+    }
+}
