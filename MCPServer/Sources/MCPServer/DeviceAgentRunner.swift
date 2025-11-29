@@ -2,28 +2,27 @@ import Foundation
 import IOSControlClient
 
 /// DeviceAgent 프로세스 관리
-/// 실기기에 테스트를 설치하고 실행
+/// 미리 빌드된 xctestrun 파일을 사용하여 실기기에서 테스트 실행
 actor DeviceAgentRunner {
     static let shared = DeviceAgentRunner()
 
     /// 실행 중인 xcodebuild 프로세스
     private var runningProcess: Process?
 
-    /// 프로젝트 경로
-    private let projectPath: String
-
-    /// 빌드 디렉토리
+    /// 빌드 디렉토리 (xctestrun 파일 위치)
     private let derivedDataPath: String
 
+    /// 환경변수 키
+    static let xctestrunPathEnvKey = "IOS_CONTROL_DEVICE_XCTESTRUN"
+
     init() {
-        // MCP 서버 실행 위치 기준으로 프로젝트 경로 찾기
+        // MCP 서버 실행 위치 기준으로 빌드 디렉토리 찾기
         let executablePath = URL(fileURLWithPath: CommandLine.arguments[0]).resolvingSymlinksInPath()
         let rootDir = executablePath
             .deletingLastPathComponent()  // MCPServer
             .deletingLastPathComponent()  // .build
             .deletingLastPathComponent()  // ios-control-mcp
 
-        self.projectPath = rootDir.appendingPathComponent("SimulatorAgent/SimulatorAgent.xcodeproj").path
         self.derivedDataPath = rootDir.appendingPathComponent(".build/DeviceAgent").path
     }
 
@@ -39,28 +38,63 @@ actor DeviceAgentRunner {
         // 기존 프로세스 정리
         stop()
 
-        // xcodebuild test-without-building 실행
+        // xctestrun 파일 찾기
+        guard let xctestrunPath = findXctestrun() else {
+            throw DeviceAgentError.xctestrunNotFound
+        }
+
+        // 테스트 실행 (test-without-building -xctestrun)
+        try await runTest(udid: udid, xctestrunPath: xctestrunPath)
+
+        // 서버 시작 대기
+        try await waitForServer(udid: udid, timeout: timeout)
+    }
+
+    /// xctestrun 파일 찾기
+    private func findXctestrun() -> String? {
+        let fm = FileManager.default
+
+        // 1. 환경변수
+        if let envPath = ProcessInfo.processInfo.environment[Self.xctestrunPathEnvKey] {
+            if fm.fileExists(atPath: envPath) {
+                return envPath
+            }
+        }
+
+        // 2. 실행파일과 같은 디렉토리
+        let executablePath = URL(fileURLWithPath: CommandLine.arguments[0]).resolvingSymlinksInPath()
+        let executableDir = executablePath.deletingLastPathComponent()
+
+        if let files = try? fm.contentsOfDirectory(atPath: executableDir.path) {
+            if let xctestrun = files.first(where: { $0.hasSuffix(".xctestrun") }) {
+                return executableDir.appendingPathComponent(xctestrun).path
+            }
+        }
+
+        // 3. derivedData/Build/Products 에서 찾기
+        let productsPath = "\(derivedDataPath)/Build/Products"
+        if let files = try? fm.contentsOfDirectory(atPath: productsPath) {
+            if let xctestrun = files.first(where: { $0.hasSuffix(".xctestrun") }) {
+                return "\(productsPath)/\(xctestrun)"
+            }
+        }
+
+        return nil
+    }
+
+    /// 테스트 실행 (test-without-building -xctestrun)
+    private func runTest(udid: String, xctestrunPath: String) async throws {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/xcodebuild")
 
-        var arguments = [
-            "test",  // 빌드 + 테스트 (처음 실행 시 빌드 필요)
-            "-project", projectPath,
-            "-scheme", "SimulatorAgent",
+        let arguments = [
+            "test-without-building",
+            "-xctestrun", xctestrunPath,
             "-destination", "id=\(udid)",
-            "-derivedDataPath", derivedDataPath,
-            "-only-testing:SimulatorAgentTests/SimulatorAgentTests/testRunServer",
-            "CODE_SIGN_STYLE=Automatic"
+            "-only-testing:SimulatorAgentTests/SimulatorAgentTests/testRunServer"
         ]
 
-        // TEAM ID가 환경변수로 제공되면 사용
-        if let teamId = ProcessInfo.processInfo.environment["IOS_CONTROL_TEAM_ID"] {
-            arguments.append("DEVELOPMENT_TEAM=\(teamId)")
-        }
-
         process.arguments = arguments
-
-        // stdout/stderr를 /dev/null로 리다이렉트 (노이즈 제거)
         process.standardOutput = FileHandle.nullDevice
         process.standardError = FileHandle.nullDevice
 
@@ -70,9 +104,6 @@ actor DeviceAgentRunner {
         } catch {
             throw DeviceAgentError.launchFailed(error.localizedDescription)
         }
-
-        // 서버 시작 대기
-        try await waitForServer(udid: udid, timeout: timeout)
     }
 
     /// Agent 중지
@@ -121,12 +152,15 @@ actor DeviceAgentRunner {
 // MARK: - Errors
 
 enum DeviceAgentError: Error, LocalizedError {
+    case xctestrunNotFound
     case launchFailed(String)
     case processTerminated(Int32)
     case timeout(TimeInterval)
 
     var errorDescription: String? {
         switch self {
+        case .xctestrunNotFound:
+            return "Device agent not found. Run 'make device-agent TEAM=<YOUR_TEAM_ID>' first."
         case .launchFailed(let reason):
             return "Failed to launch device agent: \(reason)"
         case .processTerminated(let code):
