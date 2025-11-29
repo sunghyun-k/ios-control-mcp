@@ -3,15 +3,34 @@ import XCTest
 
 enum SnapshotUtils {
     /// XCUIElementSnapshot dictionary를 AXElement로 변환
-    static func convertToAXElement(_ dict: [XCUIElement.AttributeName: Any]) -> AXElement {
+    /// - Parameters:
+    ///   - dict: snapshot dictionary
+    ///   - focusedIdentifiers: 키보드 포커스가 있는 요소들의 identifier 집합
+    static func convertToAXElement(
+        _ dict: [XCUIElement.AttributeName: Any],
+        focusedIdentifiers: Set<String> = []
+    ) -> AXElement {
         let frame = dict[.init(rawValue: "frame")] as? [String: Double] ?? [:]
         let children = (dict[.init(rawValue: "children")] as? [[XCUIElement.AttributeName: Any]])?
-            .map { convertToAXElement($0) }
+            .map { convertToAXElement($0, focusedIdentifiers: focusedIdentifiers) }
+
+        let identifier = dict[.init(rawValue: "identifier")] as? String ?? ""
+        let label = dict[.init(rawValue: "label")] as? String ?? ""
+        let elementType = dict[.init(rawValue: "elementType")] as? Int ?? 0
+
+        // TextField, SecureTextField, TextView, SearchField 타입만 hasFocus 체크
+        // 49 = TextField, 50 = SecureTextField, 52 = TextView, 45 = SearchField
+        let isInputType = [49, 50, 52, 45].contains(elementType)
+        var hasFocus: Bool? = nil
+        if isInputType {
+            let matchId = identifier.isEmpty ? label : identifier
+            hasFocus = focusedIdentifiers.contains(matchId)
+        }
 
         return AXElement(
-            type: elementTypeName(dict[.init(rawValue: "elementType")] as? Int ?? 0),
-            identifier: dict[.init(rawValue: "identifier")] as? String ?? "",
-            label: dict[.init(rawValue: "label")] as? String ?? "",
+            type: elementTypeName(elementType),
+            identifier: identifier,
+            label: label,
             value: dict[.init(rawValue: "value")] as? String,
             placeholderValue: dict[.init(rawValue: "placeholderValue")] as? String,
             frame: AXFrame(
@@ -21,6 +40,7 @@ enum SnapshotUtils {
                 height: frame["Height"] ?? 0
             ),
             enabled: dict[.init(rawValue: "enabled")] as? Bool ?? true,
+            hasFocus: hasFocus,
             children: children
         )
     }

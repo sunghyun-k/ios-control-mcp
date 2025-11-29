@@ -10,6 +10,7 @@ public struct AXElement: Codable, Sendable {
     public let frame: AXFrame
     public let enabled: Bool
     public let hittable: Bool?
+    public let hasFocus: Bool?
     public let children: [AXElement]?
 
     public init(
@@ -21,6 +22,7 @@ public struct AXElement: Codable, Sendable {
         frame: AXFrame,
         enabled: Bool,
         hittable: Bool? = nil,
+        hasFocus: Bool? = nil,
         children: [AXElement]? = nil
     ) {
         self.type = type
@@ -31,6 +33,7 @@ public struct AXElement: Codable, Sendable {
         self.frame = frame
         self.enabled = enabled
         self.hittable = hittable
+        self.hasFocus = hasFocus
         self.children = children
     }
 }
