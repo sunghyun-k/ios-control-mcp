@@ -10,7 +10,10 @@
   },
   "files": [
     "bin/",
-    "scripts/postinstall.js"
+    "scripts/postinstall.js",
+    "AutomationServer/",
+    "Common/",
+    "Makefile"
   ],
   "repository": {
     "type": "git",

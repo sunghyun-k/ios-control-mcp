@@ -65,20 +65,27 @@ endif
 	xcrun simctl install $(UDID) $(AGENT_APP)
 	xcrun simctl launch --console-pty $(UDID) $(AGENT_BUNDLE_ID)
 
-# 실기기용 Agent 빌드 (TEAM은 선택사항, Xcode에 계정이 등록되어 있으면 자동 서명)
+# 실기기용 Agent 빌드 (TEAM 필수 - 코드 사이닝 및 Bundle ID 고유화에 사용)
 device-agent:
+ifndef TEAM
+	$(error TEAM이 설정되지 않았습니다. make device-agent TEAM=<TEAM_ID> 형식으로 실행하세요.)
+endif
 	xcodebuild build-for-testing \
 		-project $(AGENT_PROJECT) \
 		-scheme AutomationServer \
 		-destination 'generic/platform=iOS' \
 		-derivedDataPath $(DEVICE_AGENT_BUILD_DIR) \
-		$(if $(TEAM),DEVELOPMENT_TEAM=$(TEAM)) \
-		CODE_SIGN_STYLE=Automatic
+		DEVELOPMENT_TEAM=$(TEAM) \
+		CODE_SIGN_STYLE=Automatic \
+		PRODUCT_BUNDLE_IDENTIFIER=com.$(TEAM).ios-control-agent
 
 # 실기기에서 Agent 실행 (xcodebuild test)
 device-agent-run:
 ifndef DEVICE_UDID
-	$(error DEVICE_UDID가 설정되지 않았습니다. make device-agent-run DEVICE_UDID=<UDID> 형식으로 실행하세요.)
+	$(error DEVICE_UDID가 설정되지 않았습니다. make device-agent-run DEVICE_UDID=<UDID> TEAM=<TEAM_ID> 형식으로 실행하세요.)
+endif
+ifndef TEAM
+	$(error TEAM이 설정되지 않았습니다. make device-agent-run DEVICE_UDID=<UDID> TEAM=<TEAM_ID> 형식으로 실행하세요.)
 endif
 	xcodebuild test \
 		-project $(AGENT_PROJECT) \
@@ -86,8 +93,9 @@ endif
 		-destination "id=$(DEVICE_UDID)" \
 		-derivedDataPath $(DEVICE_AGENT_BUILD_DIR) \
 		-only-testing:AutomationServerTests/AutomationServerTests/testRunServer \
-		$(if $(TEAM),DEVELOPMENT_TEAM=$(TEAM)) \
-		CODE_SIGN_STYLE=Automatic
+		DEVELOPMENT_TEAM=$(TEAM) \
+		CODE_SIGN_STYLE=Automatic \
+		PRODUCT_BUNDLE_IDENTIFIER=com.$(TEAM).ios-control-agent
 
 # 클린
 clean:
