@@ -160,7 +160,7 @@ enum DeviceAgentError: Error, LocalizedError {
     var errorDescription: String? {
         switch self {
         case .xctestrunNotFound:
-            return "Device agent not found. Run 'make device-agent TEAM=<YOUR_TEAM_ID>' first."
+            return "Device agent not found. Run 'make device-agent' first."
         case .launchFailed(let reason):
             return "Failed to launch device agent: \(reason)"
         case .processTerminated(let code):
