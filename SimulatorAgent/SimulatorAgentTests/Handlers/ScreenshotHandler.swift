@@ -11,7 +11,8 @@ struct ScreenshotHandler: HTTPHandler {
         let contentType: String
 
         if format == "jpeg" || format == "jpg" {
-            let quality = Double(request.query.first(where: { $0.name == "quality" })?.value ?? "0.8") ?? 0.8
+            let qualityString = request.query.first(where: { $0.name == "quality" })?.value ?? "\(Constants.defaultJpegQuality)"
+            let quality = Double(qualityString) ?? Constants.defaultJpegQuality
             imageData = screenshot.image.jpegData(compressionQuality: quality)
             contentType = "image/jpeg"
         } else {

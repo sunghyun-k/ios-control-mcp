@@ -3,8 +3,6 @@ import Common
 import XCTest
 
 struct TreeHandler: HTTPHandler {
-    private static let springboardBundleId = "com.apple.springboard"
-
     func handleRequest(_ request: HTTPRequest) async throws -> HTTPResponse {
         do {
             let treeRequest = await request.decodeBody(TreeRequest.self)
@@ -14,7 +12,7 @@ struct TreeHandler: HTTPHandler {
             if let bundleId = bundleId, !bundleId.isEmpty {
                 app = XCUIApplication(bundleIdentifier: bundleId)
             } else {
-                app = XCUIApplication(bundleIdentifier: Self.springboardBundleId)
+                app = XCUIApplication(bundleIdentifier: Constants.springboardBundleId)
             }
 
             let snapshot = try app.snapshot()

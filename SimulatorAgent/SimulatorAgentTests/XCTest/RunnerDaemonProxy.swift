@@ -7,19 +7,13 @@ class RunnerDaemonProxy {
     private let proxy: NSObject
 
     private init() {
-        let clazz: AnyClass = NSClassFromString("XCTRunnerDaemonSession")!
-        let selector = NSSelectorFromString("sharedSession")
-        let imp = clazz.method(for: selector)
-        typealias Method = @convention(c) (AnyClass, Selector) -> NSObject
-        let method = unsafeBitCast(imp, to: Method.self)
-        let session = method(clazz, selector)
-
+        let session = ObjCBridge.invokeClassMethod("XCTRunnerDaemonSession", selector: "sharedSession")!
         proxy = session
             .perform(NSSelectorFromString("daemonProxy"))
             .takeUnretainedValue() as! NSObject
     }
 
-    func send(string: String, typingFrequency: Int = 10) async throws {
+    func send(string: String, typingFrequency: Int = Constants.defaultTypingFrequency) async throws {
         let selector = NSSelectorFromString("_XCT_sendString:maximumFrequency:completion:")
         let imp = proxy.method(for: selector)
         typealias Method = @convention(c) (NSObject, Selector, NSString, Int, @escaping (Error?) -> ()) -> ()

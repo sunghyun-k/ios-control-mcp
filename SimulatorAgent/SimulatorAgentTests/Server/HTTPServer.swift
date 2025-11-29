@@ -2,7 +2,14 @@ import FlyingFox
 import Foundation
 import os
 
-enum Route: String, CaseIterable {
+/// 라우트 정의 프로토콜
+protocol Routable {
+    var route: String { get }
+    var handler: HTTPHandler { get }
+}
+
+/// 라우트 정의
+enum Route: String, CaseIterable, Routable {
     case status
     case tap
     case swipe
@@ -14,8 +21,21 @@ enum Route: String, CaseIterable {
     case goHome
     case pinch
 
-    var httpRoute: HTTPRoute {
-        HTTPRoute(rawValue)
+    var route: String { rawValue }
+
+    var handler: HTTPHandler {
+        switch self {
+        case .status: StatusHandler()
+        case .tap: TapHandler()
+        case .swipe: SwipeHandler()
+        case .inputText: InputTextHandler()
+        case .tree: TreeHandler()
+        case .screenshot: ScreenshotHandler()
+        case .foregroundApp: ForegroundAppHandler()
+        case .launchApp: LaunchAppHandler()
+        case .goHome: GoHomeHandler()
+        case .pinch: PinchHandler()
+        }
     }
 }
 
@@ -23,8 +43,8 @@ struct IOSControlServer {
     private let port: UInt16
     private let logger = Logger(subsystem: "ios-control", category: "HTTPServer")
 
-    init(port: UInt16 = 22087) {
-        if let envPort = ProcessInfo.processInfo.environment["IOS_CONTROL_PORT"],
+    init(port: UInt16 = Constants.defaultPort) {
+        if let envPort = ProcessInfo.processInfo.environment[Constants.portEnvKey],
            let p = UInt16(envPort) {
             self.port = p
         } else {
@@ -34,20 +54,14 @@ struct IOSControlServer {
 
     func start() async throws {
         let server = HTTPServer(
-            address: try .inet(ip4: "127.0.0.1", port: port),
-            timeout: 300
+            address: try .inet(ip4: Constants.serverIP, port: port),
+            timeout: Constants.serverTimeout
         )
 
-        await server.appendRoute(Route.status.httpRoute, to: StatusHandler())
-        await server.appendRoute(Route.tap.httpRoute, to: TapHandler())
-        await server.appendRoute(Route.swipe.httpRoute, to: SwipeHandler())
-        await server.appendRoute(Route.inputText.httpRoute, to: InputTextHandler())
-        await server.appendRoute(Route.tree.httpRoute, to: TreeHandler())
-        await server.appendRoute(Route.screenshot.httpRoute, to: ScreenshotHandler())
-        await server.appendRoute(Route.foregroundApp.httpRoute, to: ForegroundAppHandler())
-        await server.appendRoute(Route.launchApp.httpRoute, to: LaunchAppHandler())
-        await server.appendRoute(Route.goHome.httpRoute, to: GoHomeHandler())
-        await server.appendRoute(Route.pinch.httpRoute, to: PinchHandler())
+        // 모든 라우트 자동 등록
+        for route in Route.allCases {
+            await server.appendRoute(HTTPRoute(route.route), to: route.handler)
+        }
 
         logger.info("IOSControl HTTP server started on port \(port)")
         try await server.run()

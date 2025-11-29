@@ -3,7 +3,7 @@ import Foundation
 struct PointerEventPath {
 
     static func pathForTouch(at point: CGPoint, offset: TimeInterval = 0) -> Self {
-        let alloced = objc_lookUpClass("XCPointerEventPath")!.alloc() as! NSObject
+        let alloced = ObjCBridge.allocInstance("XCPointerEventPath")!
         let selector = NSSelectorFromString("initForTouchAtPoint:offset:")
         let imp = alloced.method(for: selector)
         typealias Method = @convention(c) (NSObject, Selector, CGPoint, TimeInterval) -> NSObject
