@@ -5,7 +5,7 @@ iOS 시뮬레이터 및 실제 iOS 기기를 자동화하기 위한 MCP(Model Co
 ## 주요 기능
 
 ### 기기 관리
-- **list_devices** - 연결된 iOS 기기 목록 조회
+- **list_devices** - 연결된 iOS 기기 목록 조회 (실제 기기 연결 시에만 필요)
 - **select_device** - 조작할 기기 선택 (UDID 지정 또는 자동 선택)
 
 ### UI 조작
