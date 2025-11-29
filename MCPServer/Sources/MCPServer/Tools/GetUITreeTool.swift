@@ -10,7 +10,6 @@ struct GetUITreeTool: MCPTool {
     static let inputSchema: Value = .object([
         "type": .string("object"),
         "properties": .object([
-            "app_bundle_id": .object(["type": .string("string"), "description": .string("앱 번들 ID")]),
             "show_coords": .object(["type": .string("boolean"), "description": .string("좌표 표시 여부. 기본값 false. tap_coordinate 사용 시에만 true로 설정하세요.")])
         ])
     ])
@@ -18,10 +17,7 @@ struct GetUITreeTool: MCPTool {
     typealias Arguments = GetUITreeArgs
 
     static func execute(args: GetUITreeArgs, client: IOSControlClient) async throws -> [Tool.Content] {
-        var appBundleId = args.appBundleId
-        if appBundleId == nil {
-            appBundleId = try await client.foregroundApp().bundleId
-        }
+        let appBundleId = try await client.foregroundApp().bundleId
         let showCoords = args.showCoords ?? false
 
         let response = try await client.tree(appBundleId: appBundleId)

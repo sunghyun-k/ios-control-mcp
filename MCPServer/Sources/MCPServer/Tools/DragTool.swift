@@ -16,8 +16,7 @@ struct DragTool: MCPTool {
             "to_label": .object(["type": .string("string"), "description": .string("드롭할 위치의 요소 라벨")]),
             "to_index": .object(["type": .string("integer"), "description": .string("동일 라벨이 여러 개일 때 인덱스 (0부터 시작)")]),
             "duration": .object(["type": .string("number"), "description": .string("드래그 이동 시간(초). 기본값 0.3")]),
-            "hold_duration": .object(["type": .string("number"), "description": .string("드래그 시작 전 홀드 시간(초). 기본값 0.5")]),
-            "app_bundle_id": .object(["type": .string("string"), "description": .string("앱 번들 ID")])
+            "hold_duration": .object(["type": .string("number"), "description": .string("드래그 시작 전 홀드 시간(초). 기본값 0.5")])
         ]),
         "required": .array([.string("from_label"), .string("to_label")])
     ])
@@ -25,11 +24,7 @@ struct DragTool: MCPTool {
     typealias Arguments = DragArgs
 
     static func execute(args: DragArgs, client: IOSControlClient) async throws -> [Tool.Content] {
-        var appBundleId = args.appBundleId
-        if appBundleId == nil {
-            appBundleId = try await client.foregroundApp().bundleId
-        }
-
+        let appBundleId = try await client.foregroundApp().bundleId
         let response = try await client.tree(appBundleId: appBundleId)
 
         // from 요소 찾기

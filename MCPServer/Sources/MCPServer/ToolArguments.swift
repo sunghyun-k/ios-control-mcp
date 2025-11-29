@@ -89,11 +89,9 @@ struct InputTextArgs: ToolArguments {
 // MARK: - get_ui_tree
 
 struct GetUITreeArgs: ToolArguments {
-    let appBundleId: String?
     let showCoords: Bool?
 
     private enum CodingKeys: String, CodingKey {
-        case appBundleId = "app_bundle_id"
         case showCoords = "show_coords"
     }
 }
@@ -138,7 +136,6 @@ struct DragArgs: ToolArguments {
     let toIndex: Int?
     let duration: Double?
     let holdDuration: Double?
-    let appBundleId: String?
 
     private enum CodingKeys: String, CodingKey {
         case fromLabel = "from_label"
@@ -147,6 +144,5 @@ struct DragArgs: ToolArguments {
         case toIndex = "to_index"
         case duration
         case holdDuration = "hold_duration"
-        case appBundleId = "app_bundle_id"
     }
 }
