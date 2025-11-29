@@ -13,6 +13,7 @@ enum ToolRegistry {
             TapCoordinateTool.tool,
             SwipeTool.tool,
             ScrollTool.tool,
+            DragTool.tool,
             InputTextTool.tool,
             GetUITreeTool.tool,
             GetForegroundAppTool.tool,
@@ -45,6 +46,8 @@ enum ToolRegistry {
             return try await SwipeTool.handle(arguments: arguments, client: client)
         case ScrollTool.name:
             return try await ScrollTool.handle(arguments: arguments, client: client)
+        case DragTool.name:
+            return try await DragTool.handle(arguments: arguments, client: client)
         case InputTextTool.name:
             return try await InputTextTool.handle(arguments: arguments, client: client)
         case GetUITreeTool.name:

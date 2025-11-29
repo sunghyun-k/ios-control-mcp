@@ -127,3 +127,23 @@ struct PinchArgs: ToolArguments {
     let scale: Double
     let velocity: Double?
 }
+
+// MARK: - drag
+
+struct DragArgs: ToolArguments {
+    let fromLabel: String
+    let fromIndex: Int?
+    let toLabel: String
+    let toIndex: Int?
+    let holdDuration: Double?
+    let appBundleId: String?
+
+    private enum CodingKeys: String, CodingKey {
+        case fromLabel = "from_label"
+        case fromIndex = "from_index"
+        case toLabel = "to_label"
+        case toIndex = "to_index"
+        case holdDuration = "hold_duration"
+        case appBundleId = "app_bundle_id"
+    }
+}
