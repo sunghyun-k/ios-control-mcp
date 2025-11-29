@@ -116,6 +116,8 @@ release-arm64: generate-version agent
 	mkdir -p $(RELEASE_DIR)/arm64
 	cp $(BUILD_DIR)/MCPServer/release/MCPServer $(RELEASE_DIR)/arm64/
 	cp -R $(AGENT_APP) $(RELEASE_DIR)/arm64/
+	cp -R AutomationServer $(RELEASE_DIR)/arm64/
+	cp -R Common $(RELEASE_DIR)/arm64/
 	cd $(RELEASE_DIR)/arm64 && tar -czvf ../ios-control-mcp-darwin-arm64.tar.gz *
 	@echo "Done! arm64 release: $(RELEASE_DIR)/ios-control-mcp-darwin-arm64.tar.gz"
 
@@ -128,6 +130,8 @@ release-x64: generate-version agent
 	mkdir -p $(RELEASE_DIR)/x64
 	cp $(BUILD_DIR)/MCPServer-x64/release/MCPServer $(RELEASE_DIR)/x64/
 	cp -R $(AGENT_APP) $(RELEASE_DIR)/x64/
+	cp -R AutomationServer $(RELEASE_DIR)/x64/
+	cp -R Common $(RELEASE_DIR)/x64/
 	cd $(RELEASE_DIR)/x64 && tar -czvf ../ios-control-mcp-darwin-x64.tar.gz *
 	@echo "Done! x64 release: $(RELEASE_DIR)/ios-control-mcp-darwin-x64.tar.gz"
 
@@ -148,6 +152,8 @@ release-universal: generate-version agent
 	mkdir -p $(RELEASE_DIR)/universal
 	cp $(BUILD_DIR)/universal/MCPServer $(RELEASE_DIR)/universal/
 	cp -R $(AGENT_APP) $(RELEASE_DIR)/universal/
+	cp -R AutomationServer $(RELEASE_DIR)/universal/
+	cp -R Common $(RELEASE_DIR)/universal/
 	cd $(RELEASE_DIR)/universal && tar -czvf ../ios-control-mcp-darwin-universal.tar.gz *
 	@echo "Done! universal release: $(RELEASE_DIR)/ios-control-mcp-darwin-universal.tar.gz"
 
