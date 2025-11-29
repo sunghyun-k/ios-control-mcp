@@ -9,23 +9,30 @@ enum ToolRegistry {
     /// 모든 Tool 객체
     static var allTools: [Tool] {
         [
+            // 기기 관리
+            ListDevicesTool.tool,
+            SelectDeviceTool.tool,
+            // UI 조작
             TapTool.tool,
             TapCoordinateTool.tool,
             SwipeTool.tool,
             ScrollTool.tool,
             DragTool.tool,
             InputTextTool.tool,
+            PinchTool.tool,
+            // 정보 조회
             GetUITreeTool.tool,
             GetForegroundAppTool.tool,
             ScreenshotTool.tool,
+            // 앱 관리
             ListAppsTool.tool,
             LaunchAppTool.tool,
             GoHomeTool.tool,
             TerminateAppTool.tool,
             OpenURLTool.tool,
+            // 클립보드
             GetPasteboardTool.tool,
-            SetPasteboardTool.tool,
-            PinchTool.tool
+            SetPasteboardTool.tool
         ]
     }
 
@@ -38,6 +45,12 @@ enum ToolRegistry {
         try await ensureServerRunning(client: client)
 
         switch name {
+        // 기기 관리 (Agent 없이 동작)
+        case ListDevicesTool.name:
+            return try await ListDevicesTool.handle(arguments: arguments, client: client)
+        case SelectDeviceTool.name:
+            return try await SelectDeviceTool.handle(arguments: arguments, client: client)
+        // UI 조작
         case TapTool.name:
             return try await TapTool.handle(arguments: arguments, client: client)
         case TapCoordinateTool.name:
@@ -50,12 +63,16 @@ enum ToolRegistry {
             return try await DragTool.handle(arguments: arguments, client: client)
         case InputTextTool.name:
             return try await InputTextTool.handle(arguments: arguments, client: client)
+        case PinchTool.name:
+            return try await PinchTool.handle(arguments: arguments, client: client)
+        // 정보 조회
         case GetUITreeTool.name:
             return try await GetUITreeTool.handle(arguments: arguments, client: client)
         case GetForegroundAppTool.name:
             return try await GetForegroundAppTool.handle(arguments: arguments, client: client)
         case ScreenshotTool.name:
             return try await ScreenshotTool.handle(arguments: arguments, client: client)
+        // 앱 관리
         case ListAppsTool.name:
             return try await ListAppsTool.handle(arguments: arguments, client: client)
         case LaunchAppTool.name:
@@ -66,12 +83,11 @@ enum ToolRegistry {
             return try await TerminateAppTool.handle(arguments: arguments, client: client)
         case OpenURLTool.name:
             return try await OpenURLTool.handle(arguments: arguments, client: client)
+        // 클립보드
         case GetPasteboardTool.name:
             return try await GetPasteboardTool.handle(arguments: arguments, client: client)
         case SetPasteboardTool.name:
             return try await SetPasteboardTool.handle(arguments: arguments, client: client)
-        case PinchTool.name:
-            return try await PinchTool.handle(arguments: arguments, client: client)
         default:
             throw IOSControlError.unknownTool(name)
         }

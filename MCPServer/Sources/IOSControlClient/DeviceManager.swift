@@ -1,0 +1,218 @@
+import Foundation
+
+/// 기기 관리자
+/// 시뮬레이터와 실제 iOS 기기를 통합 관리합니다.
+public actor DeviceManager {
+    /// 에이전트 포트 번호
+    public static let agentPort: UInt16 = 22087
+
+    /// 실기기 포트 범위 (LookinServer 방식)
+    public static let physicalDevicePortStart: UInt16 = 47175
+    public static let physicalDevicePortEnd: UInt16 = 47179
+
+    private let simctlRunner = SimctlRunner.shared
+    private let usbMuxClient = USBMuxClient()
+
+    private var currentDeviceId: String?
+    private var isListeningUSB = false
+    private var physicalDevices: [String: USBMuxDeviceInfo] = [:]  // UDID -> Info
+
+    public init() {}
+
+    // MARK: - Device Listing
+
+    /// 모든 연결된 기기 목록 (시뮬레이터 + 실기기)
+    public func listAllDevices() async throws -> [DeviceInfo] {
+        var devices: [DeviceInfo] = []
+
+        // 시뮬레이터 목록
+        let simulators = try simctlRunner.listDevices()
+        devices.append(contentsOf: simulators)
+
+        // 실기기 목록
+        let physicalDeviceList = await listPhysicalDevices()
+        devices.append(contentsOf: physicalDeviceList)
+
+        return devices
+    }
+
+    /// 시뮬레이터만 조회
+    public func listSimulators() throws -> [DeviceInfo] {
+        try simctlRunner.listDevices()
+    }
+
+    /// 실기기만 조회
+    public func listPhysicalDevices() async -> [DeviceInfo] {
+        // 현재 캐시된 기기 목록 반환
+        physicalDevices.values.map { info in
+            DeviceInfo(
+                id: info.serialNumber,
+                name: "iOS Device",  // 실기기는 이름을 별도로 가져와야 함
+                type: .physical,
+                isConnected: true,
+                osVersion: nil,
+                model: nil
+            )
+        }
+    }
+
+    // MARK: - Device Selection
+
+    /// 기기 선택
+    public func selectDevice(udid: String) async throws {
+        // 기기가 존재하는지 확인
+        let allDevices = try await listAllDevices()
+        guard allDevices.contains(where: { $0.id == udid }) else {
+            throw DeviceManagerError.deviceNotFound(udid)
+        }
+
+        currentDeviceId = udid
+    }
+
+    /// 현재 선택된 기기 ID
+    public func getCurrentDeviceId() -> String? {
+        currentDeviceId
+    }
+
+    /// 현재 선택된 기기 정보
+    public func getCurrentDevice() async throws -> DeviceInfo? {
+        guard let udid = currentDeviceId else { return nil }
+
+        let allDevices = try await listAllDevices()
+        return allDevices.first { $0.id == udid }
+    }
+
+    /// 자동 기기 선택 (우선순위: 부팅된 시뮬레이터 > 연결된 실기기)
+    public func autoSelectDevice() async throws -> DeviceInfo {
+        let allDevices = try await listAllDevices()
+
+        // 1. 부팅된 시뮬레이터 찾기
+        if let bootedSimulator = allDevices.first(where: { $0.type == .simulator && $0.isConnected }) {
+            currentDeviceId = bootedSimulator.id
+            return bootedSimulator
+        }
+
+        // 2. 연결된 실기기 찾기
+        if let physicalDevice = allDevices.first(where: { $0.type == .physical && $0.isConnected }) {
+            currentDeviceId = physicalDevice.id
+            return physicalDevice
+        }
+
+        // 3. 사용 가능한 시뮬레이터 찾기 (부팅되지 않은)
+        if let availableSimulator = allDevices.first(where: { $0.type == .simulator }) {
+            currentDeviceId = availableSimulator.id
+            return availableSimulator
+        }
+
+        throw DeviceManagerError.noDeviceAvailable
+    }
+
+    // MARK: - USB Listening
+
+    /// USB 기기 연결 이벤트 수신 시작
+    public func startUSBListening() async throws {
+        guard !isListeningUSB else { return }
+
+        isListeningUSB = true
+        let events = try await usbMuxClient.startListening()
+
+        Task {
+            for await event in events {
+                await handleUSBEvent(event)
+            }
+        }
+    }
+
+    /// USB 기기 연결 이벤트 수신 중지
+    public func stopUSBListening() async {
+        isListeningUSB = false
+        await usbMuxClient.stopListening()
+    }
+
+    private func handleUSBEvent(_ event: USBMuxDeviceEvent) {
+        switch event {
+        case .attached(let info):
+            physicalDevices[info.serialNumber] = info
+
+        case .detached(let info):
+            physicalDevices.removeValue(forKey: info.serialNumber)
+
+            // 현재 선택된 기기가 분리되면 선택 해제
+            if currentDeviceId == info.serialNumber {
+                currentDeviceId = nil
+            }
+        }
+    }
+
+    // MARK: - Device Connection
+
+    /// 현재 선택된 기기에 연결할 URL 반환
+    public func getAgentURL() async throws -> URL {
+        guard let device = try await getCurrentDevice() else {
+            throw DeviceManagerError.noDeviceSelected
+        }
+
+        switch device.type {
+        case .simulator:
+            // 시뮬레이터는 직접 로컬호스트 연결
+            return URL(string: "http://127.0.0.1:\(Self.agentPort)")!
+
+        case .physical:
+            // 실기기는 usbmuxd를 통한 연결
+            // TODO: USB 포트 포워딩 구현
+            throw DeviceManagerError.physicalDeviceNotYetSupported
+        }
+    }
+
+    /// 실기기의 Agent 포트에 연결된 파일 디스크립터 반환
+    public func connectToPhysicalDevice(udid: String) throws -> Int32 {
+        guard let info = physicalDevices[udid] else {
+            throw DeviceManagerError.deviceNotFound(udid)
+        }
+
+        return try usbMuxClient.connectToDevice(
+            deviceID: info.deviceID,
+            port: Self.agentPort
+        )
+    }
+
+    // MARK: - Command Runners
+
+    /// 현재 선택된 기기의 명령 러너 반환
+    public func getCommandRunner() async throws -> any DeviceCommandRunner {
+        guard let device = try await getCurrentDevice() else {
+            throw DeviceManagerError.noDeviceSelected
+        }
+
+        switch device.type {
+        case .simulator:
+            return simctlRunner
+
+        case .physical:
+            // TODO: 실기기용 CommandRunner 구현
+            throw DeviceManagerError.physicalDeviceNotYetSupported
+        }
+    }
+}
+
+// MARK: - Errors
+
+public enum DeviceManagerError: Error, LocalizedError {
+    case deviceNotFound(String)
+    case noDeviceAvailable
+    case noDeviceSelected
+    case physicalDeviceNotYetSupported
+
+    public var errorDescription: String? {
+        switch self {
+        case .deviceNotFound(let udid):
+            return "Device not found: \(udid)"
+        case .noDeviceAvailable:
+            return "No iOS device or simulator available"
+        case .noDeviceSelected:
+            return "No device selected. Use list_devices and select_device first."
+        case .physicalDeviceNotYetSupported:
+            return "Physical device support is not yet fully implemented"
+        }
+    }
+}

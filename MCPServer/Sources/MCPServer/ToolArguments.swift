@@ -146,3 +146,15 @@ struct DragArgs: ToolArguments {
         case holdDuration = "hold_duration"
     }
 }
+
+// MARK: - list_devices
+
+struct ListDevicesArgs: ToolArguments {
+    let type: String?
+}
+
+// MARK: - select_device
+
+struct SelectDeviceArgs: ToolArguments {
+    let udid: String
+}

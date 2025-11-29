@@ -1,4 +1,4 @@
-.PHONY: mcp mcp-run agent agent-run playground clean release-arm64 release-x64 release-universal release
+.PHONY: mcp mcp-run agent agent-run device-agent device-agent-run playground clean release-arm64 release-x64 release-universal release
 
 # 버전 정보 (package.json에서 읽기)
 VERSION := $(shell node -p "require('./package.json').version")
@@ -12,8 +12,18 @@ AGENT_PROJECT := SimulatorAgent/SimulatorAgent.xcodeproj
 AGENT_APP := $(AGENT_BUILD_DIR)/Build/Products/Debug-iphonesimulator/SimulatorAgentTests-Runner.app
 AGENT_BUNDLE_ID := simulatoragent.SimulatorAgentTests.xctrunner
 
+# 실기기용 경로
+DEVICE_AGENT_BUILD_DIR := $(BUILD_DIR)/DeviceAgent
+DEVICE_AGENT_APP := $(DEVICE_AGENT_BUILD_DIR)/Build/Products/Debug-iphoneos/SimulatorAgentTests-Runner.app
+
 # 시뮬레이터 UDID (make UDID=xxx 로 지정 가능)
 UDID ?= $(shell $(CURDIR)/scripts/find-simulator.sh)
+
+# 실기기 UDID (make DEVICE_UDID=xxx 로 지정 가능)
+DEVICE_UDID ?=
+
+# 개발 팀 ID (코드 사이닝용, make TEAM=xxx 로 지정 가능)
+TEAM ?=
 
 # 버전 파일 생성
 generate-version:
@@ -52,6 +62,36 @@ endif
 	xcrun simctl boot $(UDID) 2>/dev/null || true
 	xcrun simctl install $(UDID) $(AGENT_APP)
 	xcrun simctl launch --console-pty $(UDID) $(AGENT_BUNDLE_ID)
+
+# 실기기용 Agent 빌드
+device-agent:
+ifndef TEAM
+	$(error TEAM이 설정되지 않았습니다. make device-agent TEAM=<YOUR_TEAM_ID> 형식으로 실행하세요.)
+endif
+	xcodebuild build-for-testing \
+		-project $(AGENT_PROJECT) \
+		-scheme SimulatorAgent \
+		-destination 'generic/platform=iOS' \
+		-derivedDataPath $(DEVICE_AGENT_BUILD_DIR) \
+		DEVELOPMENT_TEAM=$(TEAM) \
+		CODE_SIGN_STYLE=Automatic
+
+# 실기기에서 Agent 실행 (xcodebuild test)
+device-agent-run:
+ifndef TEAM
+	$(error TEAM이 설정되지 않았습니다. make device-agent-run TEAM=<YOUR_TEAM_ID> DEVICE_UDID=<UDID> 형식으로 실행하세요.)
+endif
+ifndef DEVICE_UDID
+	$(error DEVICE_UDID가 설정되지 않았습니다. make device-agent-run TEAM=<YOUR_TEAM_ID> DEVICE_UDID=<UDID> 형식으로 실행하세요.)
+endif
+	xcodebuild test-without-building \
+		-project $(AGENT_PROJECT) \
+		-scheme SimulatorAgent \
+		-destination "id=$(DEVICE_UDID)" \
+		-derivedDataPath $(DEVICE_AGENT_BUILD_DIR) \
+		-only-testing:SimulatorAgentTests/HTTPServerTests/testRunServer \
+		DEVELOPMENT_TEAM=$(TEAM) \
+		CODE_SIGN_STYLE=Automatic
 
 # 클린
 clean:
