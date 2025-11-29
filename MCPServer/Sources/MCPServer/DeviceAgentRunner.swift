@@ -28,53 +28,31 @@ actor DeviceAgentRunner {
         let executablePath = URL(fileURLWithPath: CommandLine.arguments[0]).resolvingSymlinksInPath()
         let executableDir = executablePath.deletingLastPathComponent()
 
-        // 프로젝트 루트 찾기 (여러 경로 시도)
-        self.rootDir = Self.findProjectRoot(from: executableDir)
-        self.derivedDataPath = rootDir.appendingPathComponent(".build/DeviceAgent").path
-        self.xcodeProjectPath = rootDir.appendingPathComponent("SimulatorAgent/SimulatorAgent.xcodeproj").path
+        self.rootDir = executableDir
+        self.derivedDataPath = executableDir.appendingPathComponent(".build/DeviceAgent").path
+        self.xcodeProjectPath = executableDir.appendingPathComponent("SimulatorAgent/SimulatorAgent.xcodeproj").path
     }
 
-    /// 프로젝트 루트 디렉토리 찾기
-    private static func findProjectRoot(from executableDir: URL) -> URL {
+    /// Xcode 프로젝트 경로 찾기
+    /// 환경변수 IOS_CONTROL_PROJECT_PATH가 있으면 사용, 없으면 실행파일과 같은 디렉토리에서 찾음
+    private func findXcodeProject() -> String? {
         let fm = FileManager.default
-        let projectName = "SimulatorAgent/SimulatorAgent.xcodeproj"
 
-        // 1. 환경변수로 직접 지정
-        if let envPath = ProcessInfo.processInfo.environment[projectPathEnvKey] {
+        // 1. 환경변수
+        if let envPath = ProcessInfo.processInfo.environment[Self.projectPathEnvKey] {
             let url = URL(fileURLWithPath: envPath)
-            if fm.fileExists(atPath: url.appendingPathComponent(projectName).path) {
-                return url
+            if fm.fileExists(atPath: url.path) {
+                return url.path
             }
+            return nil
         }
 
-        // 2. 실행 파일과 같은 디렉토리 (배포 시)
-        if fm.fileExists(atPath: executableDir.appendingPathComponent(projectName).path) {
-            return executableDir
+        // 2. 실행파일과 같은 디렉토리
+        if fm.fileExists(atPath: xcodeProjectPath) {
+            return xcodeProjectPath
         }
 
-        // 3. 개발 시: .build/MCPServer/debug/MCPServer → 3단계 위
-        let devRoot = executableDir
-            .deletingLastPathComponent()  // debug
-            .deletingLastPathComponent()  // MCPServer
-            .deletingLastPathComponent()  // .build
-        if fm.fileExists(atPath: devRoot.appendingPathComponent(projectName).path) {
-            return devRoot
-        }
-
-        // 4. 개발 시 대안: .build/MCPServer/release/MCPServer
-        // (같은 구조이므로 위에서 처리됨)
-
-        // 5. 상위 디렉토리 탐색 (최대 5단계)
-        var current = executableDir
-        for _ in 0..<5 {
-            current = current.deletingLastPathComponent()
-            if fm.fileExists(atPath: current.appendingPathComponent(projectName).path) {
-                return current
-            }
-        }
-
-        // 찾지 못하면 기본값 (에러는 빌드 시점에 발생)
-        return executableDir
+        return nil
     }
 
     // MARK: - Public
@@ -119,8 +97,8 @@ actor DeviceAgentRunner {
             throw DeviceAgentError.teamIdRequired
         }
 
-        // Xcode 프로젝트 존재 확인
-        guard FileManager.default.fileExists(atPath: xcodeProjectPath) else {
+        // Xcode 프로젝트 찾기
+        guard let projectPath = findXcodeProject() else {
             throw DeviceAgentError.xcodeProjectNotFound(xcodeProjectPath)
         }
 
@@ -128,7 +106,7 @@ actor DeviceAgentRunner {
         process.executableURL = URL(fileURLWithPath: "/usr/bin/xcodebuild")
         process.arguments = [
             "build-for-testing",
-            "-project", xcodeProjectPath,
+            "-project", projectPath,
             "-scheme", "SimulatorAgent",
             "-destination", "generic/platform=iOS",
             "-derivedDataPath", derivedDataPath,
