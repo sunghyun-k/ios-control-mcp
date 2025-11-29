@@ -18,5 +18,5 @@ enum GestureDefaults {
     static let scrollDistance: Double = 300
 
     /// swipe 끝 지점에서 손을 때기 전 대기 시간 (초) - 관성 스크롤 방지를 위해 충분히 길게 설정
-    static let liftDelay: Double = 0.3
+    static let liftDelay: Double = 0.5
 }
