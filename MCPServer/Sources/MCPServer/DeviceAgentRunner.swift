@@ -44,7 +44,7 @@ actor DeviceAgentRunner {
         process.executableURL = URL(fileURLWithPath: "/usr/bin/xcodebuild")
 
         var arguments = [
-            "test-without-building",
+            "test",  // 빌드 + 테스트 (처음 실행 시 빌드 필요)
             "-project", projectPath,
             "-scheme", "SimulatorAgent",
             "-destination", "id=\(udid)",
