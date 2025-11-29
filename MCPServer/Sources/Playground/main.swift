@@ -1,29 +1,66 @@
 import Foundation
 import IOSControlClient
 
-print("=== 실기기 감지 테스트 ===\n")
+print("=== 실기기 USB 연결 테스트 ===\n")
 
+// 1. 기기 목록 확인
 let deviceManager = DeviceManager()
-
-// listAllDevices 호출 시 자동으로 USB 리스닝 시작
-print("기기 목록 조회 중...")
 let devices = try await deviceManager.listAllDevices()
 
-print("\n전체 기기 목록:")
-let simulators = devices.filter { $0.type == .simulator && $0.isConnected }
 let physicals = devices.filter { $0.type == .physical }
 
-print("  부팅된 시뮬레이터: \(simulators.count)개")
-print("  실기기: \(physicals.count)개")
+print("연결된 실기기: \(physicals.count)개")
 
-print("\n=== 연결된 기기 ===")
-for device in simulators + physicals {
-    let typeStr = device.type == .simulator ? "Simulator" : "Physical"
-    print("[\(typeStr)] \(device.name)")
-    print("  UDID: \(device.id)")
-    if let os = device.osVersion {
-        print("  iOS: \(os)")
+guard let physicalDevice = physicals.first else {
+    print("❌ 연결된 실기기가 없습니다.")
+    print("   USB로 iOS 기기를 연결하세요.")
+    exit(1)
+}
+
+print("✓ 실기기 발견: \(physicalDevice.id)")
+
+// 2. USB 기기 정보 확인
+if let usbInfo = await deviceManager.getPhysicalDeviceInfo(udid: physicalDevice.id) {
+    print("  - DeviceID: \(usbInfo.deviceID)")
+    print("  - ConnectionType: \(usbInfo.connectionType)")
+    if let productID = usbInfo.productID {
+        print("  - ProductID: \(productID)")
     }
+}
+
+// 3. USB HTTP 클라이언트로 Agent 연결 시도
+print("\n--- Agent 연결 테스트 ---")
+
+do {
+    let usbClient = try await deviceManager.getUSBHTTPClient(udid: physicalDevice.id)
+
+    print("Agent 상태 확인 중...")
+    let status = try await usbClient.status()
+    print("✓ Agent 연결 성공!")
+    print("  - UDID: \(status.udid ?? "N/A")")
+
+    // 4. UI Tree 조회
+    print("\nUI Tree 조회 중...")
+    let tree = try await usbClient.tree()
+    let treeString = TreeFormatter.format(tree.tree, showCoords: false)
+
+    print("✓ UI Tree 조회 성공!")
+    let preview = treeString.prefix(1500)
+    print(preview)
+    if treeString.count > 1500 {
+        print("... (총 \(treeString.count)자)")
+    }
+
+} catch USBHTTPError.httpError(let code) {
+    print("❌ HTTP 에러: \(code)")
+} catch {
+    print("❌ Agent 연결 실패: \(error)")
+    print("")
+    print("실기기에서 Agent가 실행 중이지 않습니다.")
+    print("다음 명령어로 Agent를 실행하세요:")
+    print("")
+    print("  make device-agent TEAM=<YOUR_TEAM_ID>")
+    print("  make device-agent-run TEAM=<YOUR_TEAM_ID> DEVICE_UDID=\(physicalDevice.id)")
 }
 
 print("\n=== 테스트 완료 ===")

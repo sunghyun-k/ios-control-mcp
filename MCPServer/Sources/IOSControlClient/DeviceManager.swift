@@ -183,6 +183,20 @@ public actor DeviceManager {
         )
     }
 
+    /// 실기기용 USB HTTP 클라이언트 생성
+    public func getUSBHTTPClient(udid: String) throws -> USBHTTPClient {
+        guard let info = physicalDevices[udid] else {
+            throw DeviceManagerError.deviceNotFound(udid)
+        }
+
+        return USBHTTPClient(deviceID: info.deviceID, port: Self.agentPort)
+    }
+
+    /// 캐시된 실기기 정보 조회 (디버깅용)
+    public func getPhysicalDeviceInfo(udid: String) -> USBMuxDeviceInfo? {
+        physicalDevices[udid]
+    }
+
     // MARK: - Command Runners
 
     /// 현재 선택된 기기의 명령 러너 반환

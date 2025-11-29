@@ -89,7 +89,7 @@ endif
 		-scheme SimulatorAgent \
 		-destination "id=$(DEVICE_UDID)" \
 		-derivedDataPath $(DEVICE_AGENT_BUILD_DIR) \
-		-only-testing:SimulatorAgentTests/HTTPServerTests/testRunServer \
+		-only-testing:SimulatorAgentTests/SimulatorAgentTests/testRunServer \
 		DEVELOPMENT_TEAM=$(TEAM) \
 		CODE_SIGN_STYLE=Automatic
 
