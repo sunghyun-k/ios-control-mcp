@@ -93,17 +93,22 @@ enum ToolRegistry {
         }
     }
 
-    /// 서버가 실행 중인지 확인하고, 시뮬레이터인 경우 SimulatorAgent 시작
+    /// 서버가 실행 중인지 확인하고, 필요시 Agent 시작
     private static func ensureServerRunning(client: any AgentClient) async throws {
         if await client.isServerRunning() {
             return
         }
 
-        // 시뮬레이터인 경우에만 자동 시작
-        if let device = try await DeviceManager.shared.getCurrentDevice(),
-           device.type == .simulator {
-            try await SimulatorAgentRunner.shared.start()
+        guard let device = try await DeviceManager.shared.getCurrentDevice() else {
+            return
         }
-        // 실기기인 경우 Agent가 이미 실행 중이어야 함 (수동 설치/실행 필요)
+
+        switch device.type {
+        case .simulator:
+            try await SimulatorAgentRunner.shared.start()
+
+        case .physical:
+            try await DeviceAgentRunner.shared.start(udid: device.id)
+        }
     }
 }
