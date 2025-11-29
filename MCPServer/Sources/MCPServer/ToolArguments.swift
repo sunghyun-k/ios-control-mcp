@@ -90,7 +90,7 @@ struct GetUITreeArgs: ToolArguments {
     }
 }
 
-// MARK: - launch_app, terminate_app
+// MARK: - launch_app
 
 struct BundleIdArgs: ToolArguments {
     let bundleId: String
@@ -98,18 +98,6 @@ struct BundleIdArgs: ToolArguments {
     private enum CodingKeys: String, CodingKey {
         case bundleId = "bundle_id"
     }
-}
-
-// MARK: - open_url
-
-struct URLArgs: ToolArguments {
-    let url: String
-}
-
-// MARK: - set_pasteboard
-
-struct ContentArgs: ToolArguments {
-    let content: String
 }
 
 // MARK: - pinch

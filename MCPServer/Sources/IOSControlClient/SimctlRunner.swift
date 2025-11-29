@@ -137,24 +137,6 @@ public struct SimctlRunner: Sendable {
         runIgnoringErrors(["terminate", deviceId, bundleId])
     }
 
-    /// URL 열기
-    public func openURL(deviceId: String, url: String) throws {
-        try run("openurl", deviceId, url)
-    }
-
-    // MARK: - 클립보드
-
-    /// 클립보드 읽기
-    public func getPasteboard(deviceId: String) throws -> String {
-        try runWithOutput("pbpaste", deviceId)
-    }
-
-    /// 클립보드 쓰기
-    public func setPasteboard(deviceId: String, content: String) throws {
-        guard let data = content.data(using: .utf8) else { return }
-        try runWithInput(["pbcopy", deviceId], input: data)
-    }
-
     // MARK: - 시뮬레이터 관리
 
     /// 시뮬레이터 부팅

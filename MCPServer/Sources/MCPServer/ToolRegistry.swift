@@ -27,12 +27,7 @@ enum ToolRegistry {
             // 앱 관리
             ListAppsTool.tool,
             LaunchAppTool.tool,
-            GoHomeTool.tool,
-            TerminateAppTool.tool,
-            OpenURLTool.tool,
-            // 클립보드
-            GetPasteboardTool.tool,
-            SetPasteboardTool.tool
+            GoHomeTool.tool
         ]
     }
 
@@ -79,15 +74,6 @@ enum ToolRegistry {
             return try await LaunchAppTool.handle(arguments: arguments, client: client)
         case GoHomeTool.name:
             return try await GoHomeTool.handle(arguments: arguments, client: client)
-        case TerminateAppTool.name:
-            return try await TerminateAppTool.handle(arguments: arguments, client: client)
-        case OpenURLTool.name:
-            return try await OpenURLTool.handle(arguments: arguments, client: client)
-        // 클립보드
-        case GetPasteboardTool.name:
-            return try await GetPasteboardTool.handle(arguments: arguments, client: client)
-        case SetPasteboardTool.name:
-            return try await SetPasteboardTool.handle(arguments: arguments, client: client)
         default:
             throw IOSControlError.unknownTool(name)
         }

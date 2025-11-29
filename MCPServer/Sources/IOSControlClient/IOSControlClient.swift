@@ -155,31 +155,6 @@ public final class IOSControlClient: AgentClient, @unchecked Sendable {
         return udid
     }
 
-    /// URL 열기
-    public func openURL(_ url: String) async throws {
-        let udid = try await getSimulatorUDID()
-        try simctl.openURL(deviceId: udid, url: url)
-    }
-
-    /// 앱 종료
-    public func terminateApp(bundleId: String) async throws {
-        let udid = try await getSimulatorUDID()
-        simctl.terminateApp(deviceId: udid, bundleId: bundleId)
-    }
-
-    /// 클립보드 내용 가져오기
-    public func getPasteboard() async throws -> GetPasteboardResponse {
-        let udid = try await getSimulatorUDID()
-        let content = try simctl.getPasteboard(deviceId: udid)
-        return GetPasteboardResponse(content: content.isEmpty ? nil : content)
-    }
-
-    /// 클립보드에 내용 설정
-    public func setPasteboard(_ content: String) async throws {
-        let udid = try await getSimulatorUDID()
-        try simctl.setPasteboard(deviceId: udid, content: content)
-    }
-
     /// 핀치 제스처
     public func pinch(_ request: PinchRequest) async throws {
         _ = try await post("pinch", body: request)

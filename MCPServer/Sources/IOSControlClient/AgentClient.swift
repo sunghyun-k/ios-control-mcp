@@ -25,12 +25,8 @@ public protocol AgentClient: Sendable {
     func launchApp(bundleId: String) async throws
     func goHome() async throws
 
-    // MARK: - Device Info (optional, simctl-based features may not work on physical)
+    // MARK: - Device Info (simctl-based, simulator only)
     func listApps() async throws -> ListAppsResponse
-    func terminateApp(bundleId: String) async throws
-    func openURL(_ url: String) async throws
-    func getPasteboard() async throws -> GetPasteboardResponse
-    func setPasteboard(_ content: String) async throws
 }
 
 // MARK: - Default implementations for optional features
@@ -38,22 +34,6 @@ public protocol AgentClient: Sendable {
 extension AgentClient {
     public func listApps() async throws -> ListAppsResponse {
         throw AgentClientError.notSupportedOnPhysicalDevice("listApps")
-    }
-
-    public func terminateApp(bundleId: String) async throws {
-        throw AgentClientError.notSupportedOnPhysicalDevice("terminateApp")
-    }
-
-    public func openURL(_ url: String) async throws {
-        throw AgentClientError.notSupportedOnPhysicalDevice("openURL")
-    }
-
-    public func getPasteboard() async throws -> GetPasteboardResponse {
-        throw AgentClientError.notSupportedOnPhysicalDevice("getPasteboard")
-    }
-
-    public func setPasteboard(_ content: String) async throws {
-        throw AgentClientError.notSupportedOnPhysicalDevice("setPasteboard")
     }
 
     public func isServerRunning() async -> Bool {

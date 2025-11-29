@@ -19,16 +19,8 @@ public protocol DeviceCommandRunner: Sendable {
     /// 앱 실행
     func launchApp(deviceId: String, bundleId: String) throws
 
-    /// 앱 종료
-    func terminateApp(deviceId: String, bundleId: String)
-
     /// 설치된 앱 목록 조회
     func listApps(deviceId: String) throws -> [[String: Any]]
-
-    // MARK: - URL
-
-    /// URL 열기
-    func openURL(deviceId: String, url: String) throws
 }
 
 // MARK: - SimctlRunner Extension

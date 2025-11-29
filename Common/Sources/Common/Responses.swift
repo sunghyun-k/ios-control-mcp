@@ -38,11 +38,3 @@ public struct ListAppsResponse: Codable, Sendable {
     }
 }
 
-/// 클립보드 내용 응답
-public struct GetPasteboardResponse: Codable, Sendable {
-    public let content: String?
-
-    public init(content: String?) {
-        self.content = content
-    }
-}
