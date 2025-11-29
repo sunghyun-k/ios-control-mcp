@@ -275,6 +275,11 @@ private func formatSingleElement(_ element: AXElement, showCoords: Bool, duplica
         attributes.append("disabled")
     }
 
+    // 포커스 상태 표시 (입력 필드만)
+    if let hasFocus = element.hasFocus, hasFocus {
+        attributes.append("focused")
+    }
+
     // 좌표
     if showCoords {
         let cx = Int(element.frame.center.x)
