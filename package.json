@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "iOS Simulator automation MCP server",
   "bin": {
-    "ios-control-mcp": "./bin/cli.js"
+    "ios-control-mcp": "bin/cli.js"
   },
   "scripts": {
     "postinstall": "node ./scripts/postinstall.js"
