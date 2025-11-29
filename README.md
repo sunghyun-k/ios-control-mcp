@@ -35,6 +35,10 @@ iOS 시뮬레이터 및 실제 iOS 기기를 자동화하기 위한 MCP(Model Co
 
 ## 설치
 
+### 시뮬레이터 사용 (기본)
+
+시뮬레이터는 별도 설정 없이 바로 사용할 수 있습니다.
+
 **Standard config** - 대부분의 MCP 클라이언트에서 동작합니다:
 
 ```json
@@ -93,6 +97,76 @@ code --add-mcp '{"name":"ios-control","command":"npx","args":["-y","ios-control-
 [Windsurf MCP 문서](https://docs.windsurf.com/windsurf/cascade/mcp)를 따라 위의 Standard config를 사용하세요.
 
 </details>
+
+### 실제 iOS 기기 사용
+
+실제 iOS 기기를 사용하려면 Apple Developer Team ID가 필요합니다. 무료 Apple ID로도 가능합니다.
+
+#### 1. Team ID 찾기
+
+터미널에서 다음 명령어로 Team ID를 확인합니다:
+
+```bash
+security find-identity -v -p codesigning
+```
+
+출력 예시:
+```
+1) ABCDEF1234567890... "Apple Development: your@email.com (XXXXXXXXXX)"
+```
+
+괄호 안의 10자리 문자열(예: `XXXXXXXXXX`)이 Team ID입니다.
+
+> **Team ID가 없다면?** Xcode에서 아무 프로젝트나 열고, 본인 Apple ID로 로그인한 뒤 한 번이라도 기기에 앱을 빌드하면 자동으로 생성됩니다.
+
+#### 2. MCP 설정에 Team ID 추가
+
+```json
+{
+  "mcpServers": {
+    "ios-control": {
+      "command": "npx",
+      "args": ["-y", "ios-control-mcp"],
+      "env": {
+        "IOS_CONTROL_TEAM_ID": "YOUR_TEAM_ID"
+      }
+    }
+  }
+}
+```
+
+#### 3. 기기 준비
+
+1. **개발자 모드 활성화**: 설정 → 개인정보 보호 및 보안 → 개발자 모드 → 활성화 (iOS 16+)
+2. **USB 연결**: Mac에 기기를 USB로 연결하고 "이 컴퓨터를 신뢰하시겠습니까?" 팝업에서 신뢰 선택
+3. **첫 실행 시**: 기기에 앱 설치 후 "신뢰하지 않는 개발자" 경고가 뜨면, 설정 → 일반 → VPN 및 기기 관리에서 개발자 앱을 신뢰하도록 설정
+
+## 트러블슈팅
+
+### 시뮬레이터
+
+| 에러 | 해결 방법 |
+|------|----------|
+| "사용 가능한 iPhone 시뮬레이터가 없습니다" | Xcode 설치 후 `xcodebuild -downloadPlatform iOS` 실행 |
+| "AutomationServer 앱을 찾을 수 없습니다" | 처음 실행 시 자동으로 빌드됩니다. Xcode가 설치되어 있는지 확인하세요. |
+| "시뮬레이터 부팅 실패" | Xcode → Settings → Platforms에서 iOS 시뮬레이터가 설치되어 있는지 확인 |
+
+### 실제 기기
+
+| 에러 | 해결 방법 |
+|------|----------|
+| "Physical device requires Apple Developer Team ID" | MCP 설정의 `env`에 `IOS_CONTROL_TEAM_ID` 추가 |
+| "Xcode project not found" | Xcode가 설치되어 있는지 확인하세요 |
+| 빌드 실패 (사이닝 에러) | 1) Team ID가 올바른지 확인<br>2) 기기가 USB로 연결되어 있는지 확인<br>3) Xcode에서 해당 기기로 아무 앱이나 한 번 빌드하여 프로비저닝 설정 |
+| "신뢰하지 않는 개발자" | 기기의 설정 → 일반 → VPN 및 기기 관리에서 개발자 앱 신뢰 |
+| 기기가 목록에 안 보임 | 1) USB 케이블 재연결<br>2) "이 컴퓨터를 신뢰" 팝업 확인<br>3) 개발자 모드 활성화 확인 |
+
+### 공통
+
+| 에러 | 해결 방법 |
+|------|----------|
+| "No iOS device or simulator available" | Xcode 설치 및 시뮬레이터 다운로드, 또는 실제 기기 USB 연결 |
+| "서버가 시작되지 않았습니다" | Agent 앱이 기기/시뮬레이터에서 정상 실행 중인지 확인. 재시도하거나 기기를 재부팅하세요. |
 
 ## 아키텍처
 

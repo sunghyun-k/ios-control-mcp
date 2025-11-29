@@ -293,13 +293,26 @@ public enum DeviceManagerError: Error, LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .deviceNotFound(let udid):
-            return "Device not found: \(udid)"
+            return """
+                기기를 찾을 수 없습니다: \(udid)
+
+                해결 방법:
+                  1. list_devices로 현재 연결된 기기 목록 확인
+                  2. 실기기인 경우 USB 연결 상태 확인
+                  3. 시뮬레이터인 경우 Xcode에서 해당 시뮬레이터가 존재하는지 확인
+                """
         case .noDeviceAvailable:
-            return "No iOS device or simulator available"
+            return """
+                사용 가능한 iOS 기기 또는 시뮬레이터가 없습니다.
+
+                해결 방법:
+                  - 시뮬레이터: Xcode 설치 후 xcodebuild -downloadPlatform iOS 실행
+                  - 실기기: USB로 Mac에 연결하고 "이 컴퓨터를 신뢰" 선택
+                """
         case .noDeviceSelected:
-            return "No device selected. Use list_devices and select_device first."
+            return "기기가 선택되지 않았습니다. list_devices와 select_device를 사용하세요."
         case .physicalDeviceNotYetSupported:
-            return "Physical device support is not yet fully implemented"
+            return "이 기능은 아직 실기기에서 지원되지 않습니다."
         }
     }
 }

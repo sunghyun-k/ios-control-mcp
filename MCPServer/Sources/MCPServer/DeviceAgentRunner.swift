@@ -245,25 +245,63 @@ enum DeviceAgentError: Error, LocalizedError {
         switch self {
         case .teamIdRequired:
             return """
-                Physical device requires Apple Developer Team ID.
-                Set the IOS_CONTROL_TEAM_ID environment variable.
+                실기기 사용에는 Apple Developer Team ID가 필요합니다.
 
-                Example (MCP config):
-                  "env": { "IOS_CONTROL_TEAM_ID": "YOUR_TEAM_ID" }
+                1. Team ID 찾기:
+                   security find-identity -v -p codesigning
+                   → 괄호 안의 10자리 문자열이 Team ID입니다
 
-                Find your Team ID:
-                  security find-identity -v -p codesigning | head -1
+                2. MCP 설정에 추가:
+                   "env": { "IOS_CONTROL_TEAM_ID": "YOUR_TEAM_ID" }
+
+                Team ID가 없다면 Xcode에서 본인 Apple ID로 로그인 후
+                아무 앱이나 기기에 빌드하면 자동으로 생성됩니다.
                 """
         case .xcodeProjectNotFound(let path):
-            return "Xcode project not found at: \(path)"
+            return """
+                Xcode 프로젝트를 찾을 수 없습니다: \(path)
+
+                Xcode가 설치되어 있는지 확인하세요.
+                """
         case .buildFailed(let reason):
-            return "Failed to build device agent: \(reason)"
+            return """
+                실기기용 Agent 빌드 실패: \(reason)
+
+                해결 방법:
+                  1. Team ID가 올바른지 확인
+                  2. 기기가 USB로 연결되어 있는지 확인
+                  3. Xcode에서 해당 기기로 아무 앱이나 한 번 빌드하여 프로비저닝 설정
+                  4. Xcode → Settings → Accounts에서 Apple ID 로그인 확인
+                """
         case .launchFailed(let reason):
-            return "Failed to launch device agent: \(reason)"
+            return """
+                실기기에서 Agent 실행 실패: \(reason)
+
+                해결 방법:
+                  1. 기기가 USB로 연결되어 있는지 확인
+                  2. 기기가 잠금 해제되어 있는지 확인
+                  3. 개발자 모드가 활성화되어 있는지 확인 (설정 → 개인정보 보호 및 보안)
+                """
         case .processTerminated(let code):
-            return "Device agent process terminated with code \(code)"
+            return """
+                Agent 프로세스가 종료되었습니다 (코드: \(code))
+
+                해결 방법:
+                  1. 기기 화면이 잠겨있지 않은지 확인
+                  2. "신뢰하지 않는 개발자" 경고가 있는지 확인
+                     → 설정 → 일반 → VPN 및 기기 관리에서 앱 신뢰
+                  3. 기기를 재부팅 후 재시도
+                """
         case .timeout(let seconds):
-            return "Device agent did not start within \(Int(seconds)) seconds"
+            return """
+                Agent가 \(Int(seconds))초 내에 시작되지 않았습니다.
+
+                해결 방법:
+                  1. 기기 화면이 잠겨있지 않은지 확인
+                  2. "신뢰하지 않는 개발자" 경고가 있는지 확인
+                     → 설정 → 일반 → VPN 및 기기 관리에서 앱 신뢰
+                  3. USB 케이블을 재연결 후 재시도
+                """
         }
     }
 }
