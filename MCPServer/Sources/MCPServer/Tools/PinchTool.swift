@@ -10,20 +10,26 @@ struct PinchTool: MCPTool {
     static let inputSchema: Value = .object([
         "type": .string("object"),
         "properties": .object([
-            "x": .object(["type": .string("number"), "description": .string("핀치 중심 X 좌표")]),
-            "y": .object(["type": .string("number"), "description": .string("핀치 중심 Y 좌표")]),
+            "x": .object(["type": .string("number"), "description": .string("핀치 중심 X 좌표. 기본값은 화면 중앙")]),
+            "y": .object(["type": .string("number"), "description": .string("핀치 중심 Y 좌표. 기본값은 화면 중앙")]),
             "scale": .object(["type": .string("number"), "description": .string("줌 배율. 1.0 미만이면 줌 아웃, 1.0 초과면 줌 인 (예: 2.0은 2배 확대)")]),
             "velocity": .object(["type": .string("number"), "description": .string("핀치 속도. 기본값 1.0")])
         ]),
-        "required": .array([.string("x"), .string("y"), .string("scale")])
+        "required": .array([.string("scale")])
     ])
 
     typealias Arguments = PinchArgs
 
     static func execute(args: PinchArgs, client: IOSControlClient) async throws -> [Tool.Content] {
+        let response = try await client.tree()
+        let frame = response.tree.frame
+
+        let x = args.x ?? (frame.width / 2)
+        let y = args.y ?? (frame.height / 2)
         let velocity = args.velocity ?? 1.0
-        try await client.pinch(x: args.x, y: args.y, scale: args.scale, velocity: velocity)
+
+        try await client.pinch(x: x, y: y, scale: args.scale, velocity: velocity)
         let action = args.scale > 1.0 ? "zoomed in" : "zoomed out"
-        return [.text("\(action) at (\(args.x), \(args.y)) with scale \(args.scale)")]
+        return [.text("\(action) at (\(x), \(y)) with scale \(args.scale)")]
     }
 }

@@ -121,8 +121,8 @@ struct ContentArgs: ToolArguments {
 // MARK: - pinch
 
 struct PinchArgs: ToolArguments {
-    let x: Double
-    let y: Double
+    let x: Double?
+    let y: Double?
     let scale: Double
     let velocity: Double?
 }
