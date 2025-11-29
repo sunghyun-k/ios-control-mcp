@@ -10,21 +10,21 @@ struct SwipeTool: MCPTool {
     static let inputSchema: Value = .object([
         "type": .string("object"),
         "properties": .object([
-            "start_x": .object(["type": .string("number"), "description": .string("Start X coordinate")]),
-            "start_y": .object(["type": .string("number"), "description": .string("Start Y coordinate")]),
-            "end_x": .object(["type": .string("number"), "description": .string("End X coordinate")]),
-            "end_y": .object(["type": .string("number"), "description": .string("End Y coordinate")]),
+            "start": .object(["type": .string("string"), "description": .string("Start coordinate as 'x,y' (e.g., '100,200')")]),
+            "end": .object(["type": .string("string"), "description": .string("End coordinate as 'x,y' (e.g., '100,500')")]),
             "duration": .object(["type": .string("number"), "description": .string("Swipe duration in seconds. Default 0.5")]),
             "hold_duration": .object(["type": .string("number"), "description": .string("Hold time before swipe starts in seconds. Used for dragging")])
         ]),
-        "required": .array([.string("start_x"), .string("start_y"), .string("end_x"), .string("end_y")])
+        "required": .array([.string("start"), .string("end")])
     ])
 
     typealias Arguments = SwipeArgs
 
     static func execute(args: SwipeArgs, client: any AgentClient) async throws -> [Tool.Content] {
+        let startCoord = try args.parseStart()
+        let endCoord = try args.parseEnd()
         let duration = args.duration ?? GestureDefaults.swipeDuration
-        try await client.swipe(startX: args.startX, startY: args.startY, endX: args.endX, endY: args.endY, duration: duration, holdDuration: args.holdDuration, liftDelay: GestureDefaults.liftDelay)
-        return [.text("swiped (\(args.startX), \(args.startY)) -> (\(args.endX), \(args.endY))")]
+        try await client.swipe(startX: startCoord.x, startY: startCoord.y, endX: endCoord.x, endY: endCoord.y, duration: duration, holdDuration: args.holdDuration, liftDelay: GestureDefaults.liftDelay)
+        return [.text("swiped (\(startCoord.x), \(startCoord.y)) -> (\(endCoord.x), \(endCoord.y))")]
     }
 }

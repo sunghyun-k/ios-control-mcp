@@ -17,8 +17,7 @@ struct ScrollTool: MCPTool {
             ]),
             "distance": .object(["type": .string("number"), "description": .string("Scroll distance in pixels. Default 300")]),
             "duration": .object(["type": .string("number"), "description": .string("Scroll duration in seconds. Default 0.3")]),
-            "start_x": .object(["type": .string("number"), "description": .string("Start X coordinate. Default is screen center")]),
-            "start_y": .object(["type": .string("number"), "description": .string("Start Y coordinate. Default is screen center")])
+            "start": .object(["type": .string("string"), "description": .string("Start coordinate as 'x,y' (e.g., '200,400'). Default is screen center")])
         ]),
         "required": .array([.string("direction")])
     ])
@@ -31,8 +30,9 @@ struct ScrollTool: MCPTool {
         let response = try await client.tree()
         let frame = response.tree.frame
 
-        let x = args.startX ?? (frame.width / 2)
-        let y = args.startY ?? (frame.height / 2)
+        let startCoord = args.parseStart()
+        let x = startCoord?.x ?? (frame.width / 2)
+        let y = startCoord?.y ?? (frame.height / 2)
 
         // down = 아래 내용을 보고 싶다 = 위로 스와이프 (endY < startY)
         // up = 위 내용을 보고 싶다 = 아래로 스와이프 (endY > startY)

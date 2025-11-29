@@ -15,6 +15,36 @@ extension ToolArguments {
     }
 }
 
+// MARK: - 좌표 파싱 헬퍼
+
+struct Coordinate {
+    let x: Double
+    let y: Double
+
+    /// "x,y" 문자열에서 좌표 파싱
+    init?(from string: String) {
+        let parts = string.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+        guard parts.count == 2,
+              let x = Double(parts[0]),
+              let y = Double(parts[1]) else {
+            return nil
+        }
+        self.x = x
+        self.y = y
+    }
+}
+
+enum CoordinateParseError: LocalizedError {
+    case invalidFormat(String)
+
+    var errorDescription: String? {
+        switch self {
+        case .invalidFormat(let value):
+            return "Invalid coordinate format '\(value)'. Expected 'x,y' (e.g., '100,200')"
+        }
+    }
+}
+
 // MARK: - 인자 없는 도구용
 
 struct EmptyArgs: ToolArguments {
@@ -41,28 +71,42 @@ struct TapArgs: ToolArguments {
 // MARK: - tap_coordinate
 
 struct TapCoordinateArgs: ToolArguments {
-    let x: Double
-    let y: Double
+    let coordinate: String
     let duration: Double?
+
+    func parseCoordinate() throws -> Coordinate {
+        guard let coord = Coordinate(from: coordinate) else {
+            throw CoordinateParseError.invalidFormat(coordinate)
+        }
+        return coord
+    }
 }
 
 // MARK: - swipe
 
 struct SwipeArgs: ToolArguments {
-    let startX: Double
-    let startY: Double
-    let endX: Double
-    let endY: Double
+    let start: String
+    let end: String
     let duration: Double?
     let holdDuration: Double?
 
     private enum CodingKeys: String, CodingKey {
-        case startX = "start_x"
-        case startY = "start_y"
-        case endX = "end_x"
-        case endY = "end_y"
-        case duration
+        case start, end, duration
         case holdDuration = "hold_duration"
+    }
+
+    func parseStart() throws -> Coordinate {
+        guard let coord = Coordinate(from: start) else {
+            throw CoordinateParseError.invalidFormat(start)
+        }
+        return coord
+    }
+
+    func parseEnd() throws -> Coordinate {
+        guard let coord = Coordinate(from: end) else {
+            throw CoordinateParseError.invalidFormat(end)
+        }
+        return coord
     }
 }
 
@@ -72,13 +116,11 @@ struct ScrollArgs: ToolArguments {
     let direction: String
     let distance: Double?
     let duration: Double?
-    let startX: Double?
-    let startY: Double?
+    let start: String?
 
-    private enum CodingKeys: String, CodingKey {
-        case direction, distance, duration
-        case startX = "start_x"
-        case startY = "start_y"
+    func parseStart() -> Coordinate? {
+        guard let start = start else { return nil }
+        return Coordinate(from: start)
     }
 }
 
@@ -111,10 +153,14 @@ struct BundleIdArgs: ToolArguments {
 // MARK: - pinch
 
 struct PinchArgs: ToolArguments {
-    let x: Double?
-    let y: Double?
+    let center: String?
     let scale: Double
     let velocity: Double?
+
+    func parseCenter() -> Coordinate? {
+        guard let center = center else { return nil }
+        return Coordinate(from: center)
+    }
 }
 
 // MARK: - drag

@@ -10,21 +10,21 @@ struct TapCoordinateTool: MCPTool {
     static let inputSchema: Value = .object([
         "type": .string("object"),
         "properties": .object([
-            "x": .object(["type": .string("number"), "description": .string("X coordinate")]),
-            "y": .object(["type": .string("number"), "description": .string("Y coordinate")]),
+            "coordinate": .object(["type": .string("string"), "description": .string("Tap coordinate as 'x,y' (e.g., '100,200')")]),
             "duration": .object(["type": .string("number"), "description": .string("Long press duration in seconds")])
         ]),
-        "required": .array([.string("x"), .string("y")])
+        "required": .array([.string("coordinate")])
     ])
 
     typealias Arguments = TapCoordinateArgs
 
     static func execute(args: TapCoordinateArgs, client: any AgentClient) async throws -> [Tool.Content] {
-        try await client.tap(x: args.x, y: args.y, duration: args.duration)
+        let coord = try args.parseCoordinate()
+        try await client.tap(x: coord.x, y: coord.y, duration: args.duration)
 
         if let duration = args.duration {
-            return [.text("tapped (\(args.x), \(args.y)) for \(duration)s")]
+            return [.text("tapped (\(coord.x), \(coord.y)) for \(duration)s")]
         }
-        return [.text("tapped (\(args.x), \(args.y))")]
+        return [.text("tapped (\(coord.x), \(coord.y))")]
     }
 }
