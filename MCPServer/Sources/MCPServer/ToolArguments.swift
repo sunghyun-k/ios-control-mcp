@@ -141,12 +141,6 @@ struct DragArgs: ToolArguments {
     }
 }
 
-// MARK: - list_devices
-
-struct ListDevicesArgs: ToolArguments {
-    let type: String?
-}
-
 // MARK: - select_device
 
 struct SelectDeviceArgs: ToolArguments {
