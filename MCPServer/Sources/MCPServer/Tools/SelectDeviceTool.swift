@@ -5,7 +5,7 @@ import IOSControlClient
 struct SelectDeviceTool: MCPTool {
     static let name = "select_device"
 
-    static let description = "조작할 iOS 기기를 선택합니다. list_devices로 기기 목록을 확인한 후 UDID를 지정하세요. UDID 없이 호출하면 선택을 해제하고 자동 선택 모드로 돌아갑니다."
+    static let description = "조작할 iOS 기기를 선택합니다. 실기기가 여러 대일 때 사용하세요."
 
     static let inputSchema: Value = .object([
         "type": .string("object"),

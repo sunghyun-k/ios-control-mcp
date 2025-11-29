@@ -5,7 +5,7 @@ import IOSControlClient
 struct SwipeTool: MCPTool {
     static let name = "swipe"
 
-    static let description = "좌표 기반 스와이프를 수행합니다."
+    static let description = "시작점에서 끝점까지 스와이프합니다. 일반 스크롤은 scroll을, 요소 드래그는 drag를 사용하세요."
 
     static let inputSchema: Value = .object([
         "type": .string("object"),

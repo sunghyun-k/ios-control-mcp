@@ -5,7 +5,7 @@ import IOSControlClient
 struct TapCoordinateTool: MCPTool {
     static let name = "tap_coordinate"
 
-    static let description = "좌표 기반 탭을 수행합니다."
+    static let description = "좌표로 직접 탭합니다. tap으로 요소를 찾지 못할 때 사용하세요."
 
     static let inputSchema: Value = .object([
         "type": .string("object"),

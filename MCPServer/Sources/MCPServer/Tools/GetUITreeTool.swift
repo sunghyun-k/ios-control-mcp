@@ -5,7 +5,7 @@ import IOSControlClient
 struct GetUITreeTool: MCPTool {
     static let name = "get_ui_tree"
 
-    static let description = "현재 화면의 UI 트리를 반환합니다."
+    static let description = "현재 화면의 UI 요소 트리를 반환합니다. tap, drag 등에서 사용할 라벨을 확인할 수 있습니다."
 
     static let inputSchema: Value = .object([
         "type": .string("object"),

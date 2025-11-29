@@ -5,7 +5,7 @@ import IOSControlClient
 struct LaunchAppTool: MCPTool {
     static let name = "launch_app"
 
-    static let description = "번들 ID로 앱을 실행합니다."
+    static let description = "번들 ID로 앱을 실행합니다. 번들 ID는 list_apps로 확인하세요."
 
     static let inputSchema: Value = .object([
         "type": .string("object"),
