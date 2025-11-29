@@ -69,11 +69,12 @@ struct SwipeArgs: ToolArguments {
 struct ScrollArgs: ToolArguments {
     let direction: String
     let distance: Double?
+    let duration: Double?
     let startX: Double?
     let startY: Double?
 
     private enum CodingKeys: String, CodingKey {
-        case direction, distance
+        case direction, distance, duration
         case startX = "start_x"
         case startY = "start_y"
     }
@@ -135,6 +136,7 @@ struct DragArgs: ToolArguments {
     let fromIndex: Int?
     let toLabel: String
     let toIndex: Int?
+    let duration: Double?
     let holdDuration: Double?
     let appBundleId: String?
 
@@ -143,6 +145,7 @@ struct DragArgs: ToolArguments {
         case fromIndex = "from_index"
         case toLabel = "to_label"
         case toIndex = "to_index"
+        case duration
         case holdDuration = "hold_duration"
         case appBundleId = "app_bundle_id"
     }

@@ -5,7 +5,7 @@ import IOSControlClient
 struct SwipeTool: MCPTool {
     static let name = "swipe"
 
-    static let description = "iOS 시뮬레이터 화면에서 스와이프를 수행합니다."
+    static let description = "좌표 기반 스와이프 제스처를 수행합니다. 저수준 도구로, scroll과 drag는 내부적으로 이 도구를 사용합니다."
 
     static let inputSchema: Value = .object([
         "type": .string("object"),
@@ -14,8 +14,8 @@ struct SwipeTool: MCPTool {
             "start_y": .object(["type": .string("number"), "description": .string("시작 Y 좌표")]),
             "end_x": .object(["type": .string("number"), "description": .string("끝 X 좌표")]),
             "end_y": .object(["type": .string("number"), "description": .string("끝 Y 좌표")]),
-            "duration": .object(["type": .string("number"), "description": .string("스와이프 시간(초)")]),
-            "hold_duration": .object(["type": .string("number"), "description": .string("터치 후 스와이프 시작 전 대기 시간(초). 항목 드래그 시 사용")])
+            "duration": .object(["type": .string("number"), "description": .string("스와이프 시간(초). 기본값 0.5")]),
+            "hold_duration": .object(["type": .string("number"), "description": .string("터치 후 스와이프 시작 전 대기 시간(초). 드래그 시 사용")])
         ]),
         "required": .array([.string("start_x"), .string("start_y"), .string("end_x"), .string("end_y")])
     ])
@@ -23,7 +23,7 @@ struct SwipeTool: MCPTool {
     typealias Arguments = SwipeArgs
 
     static func execute(args: SwipeArgs, client: IOSControlClient) async throws -> [Tool.Content] {
-        let duration = args.duration ?? 0.5
+        let duration = args.duration ?? GestureDefaults.swipeDuration
         try await client.swipe(startX: args.startX, startY: args.startY, endX: args.endX, endY: args.endY, duration: duration, holdDuration: args.holdDuration)
         return [.text("swiped (\(args.startX), \(args.startY)) -> (\(args.endX), \(args.endY))")]
     }

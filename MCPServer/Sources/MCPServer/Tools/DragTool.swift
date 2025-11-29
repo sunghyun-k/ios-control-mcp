@@ -6,7 +6,7 @@ import IOSControlClient
 struct DragTool: MCPTool {
     static let name = "drag"
 
-    static let description = "UI 요소를 드래그하여 다른 위치로 이동합니다. 리스트 항목 재정렬 등에 사용합니다."
+    static let description = "라벨로 UI 요소를 찾아 드래그합니다. swipe의 고수준 래퍼입니다. 리스트 항목 재정렬 등에 사용합니다."
 
     static let inputSchema: Value = .object([
         "type": .string("object"),
@@ -15,6 +15,7 @@ struct DragTool: MCPTool {
             "from_index": .object(["type": .string("integer"), "description": .string("동일 라벨이 여러 개일 때 인덱스 (0부터 시작)")]),
             "to_label": .object(["type": .string("string"), "description": .string("드롭할 위치의 요소 라벨")]),
             "to_index": .object(["type": .string("integer"), "description": .string("동일 라벨이 여러 개일 때 인덱스 (0부터 시작)")]),
+            "duration": .object(["type": .string("number"), "description": .string("드래그 이동 시간(초). 기본값 0.3")]),
             "hold_duration": .object(["type": .string("number"), "description": .string("드래그 시작 전 홀드 시간(초). 기본값 0.5")]),
             "app_bundle_id": .object(["type": .string("string"), "description": .string("앱 번들 ID")])
         ]),
@@ -45,14 +46,15 @@ struct DragTool: MCPTool {
 
         let fromCenter = fromElement.frame.center
         let toCenter = toElement.frame.center
-        let holdDuration = args.holdDuration ?? 0.5
+        let duration = args.duration ?? GestureDefaults.dragDuration
+        let holdDuration = args.holdDuration ?? GestureDefaults.holdDuration
 
         try await client.swipe(
             startX: fromCenter.x,
             startY: fromCenter.y,
             endX: toCenter.x,
             endY: toCenter.y,
-            duration: 0.3,
+            duration: duration,
             holdDuration: holdDuration
         )
 
