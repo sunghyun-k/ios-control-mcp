@@ -182,16 +182,18 @@ public enum USBMuxMessageType: String {
 
 extension USBMuxPacket {
     /// Listen 요청 패킷 생성
+    /// 패킷 타입은 항상 plistPayload(8)이고, MessageType으로 동작 구분
     public static func listenRequest(tag: UInt32) throws -> USBMuxPacket {
         let plist: [String: Any] = [
             "MessageType": USBMuxMessageType.listen.rawValue,
             "ClientVersionString": "ios-control-mcp",
             "ProgName": "ios-control-mcp"
         ]
-        return try plistPacket(type: .listen, tag: tag, plist: plist)
+        return try plistPacket(type: .plistPayload, tag: tag, plist: plist)
     }
 
     /// Connect 요청 패킷 생성
+    /// 패킷 타입은 항상 plistPayload(8)이고, MessageType으로 동작 구분
     public static func connectRequest(tag: UInt32, deviceID: Int, port: UInt16) throws -> USBMuxPacket {
         // 포트 바이트 스왑 (네트워크 바이트 오더)
         let swappedPort = port.bigEndian
@@ -203,6 +205,6 @@ extension USBMuxPacket {
             "DeviceID": deviceID,
             "PortNumber": Int(swappedPort)
         ]
-        return try plistPacket(type: .connect, tag: tag, plist: plist)
+        return try plistPacket(type: .plistPayload, tag: tag, plist: plist)
     }
 }

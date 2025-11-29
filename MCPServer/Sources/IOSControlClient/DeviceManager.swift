@@ -29,8 +29,8 @@ public actor DeviceManager {
         let simulators = try simctlRunner.listDevices()
         devices.append(contentsOf: simulators)
 
-        // 실기기 목록
-        let physicalDeviceList = await listPhysicalDevices()
+        // 실기기 목록 (USB 리스닝 자동 시작)
+        let physicalDeviceList = try await listPhysicalDevices()
         devices.append(contentsOf: physicalDeviceList)
 
         return devices
@@ -42,9 +42,16 @@ public actor DeviceManager {
     }
 
     /// 실기기만 조회
-    public func listPhysicalDevices() async -> [DeviceInfo] {
+    public func listPhysicalDevices() async throws -> [DeviceInfo] {
+        // USB 리스닝이 시작되지 않았으면 시작하고 기기 이벤트 수신 대기
+        if !isListeningUSB {
+            try await startUSBListening()
+            // 기기 연결 이벤트 수신 대기 (최대 500ms)
+            try await Task.sleep(for: .milliseconds(500))
+        }
+
         // 현재 캐시된 기기 목록 반환
-        physicalDevices.values.map { info in
+        return physicalDevices.values.map { info in
             DeviceInfo(
                 id: info.serialNumber,
                 name: "iOS Device",  // 실기기는 이름을 별도로 가져와야 함
@@ -116,9 +123,9 @@ public actor DeviceManager {
         isListeningUSB = true
         let events = try await usbMuxClient.startListening()
 
-        Task {
+        Task { [weak self] in
             for await event in events {
-                await handleUSBEvent(event)
+                await self?.handleUSBEvent(event)
             }
         }
     }
