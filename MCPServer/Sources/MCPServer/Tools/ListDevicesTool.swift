@@ -5,7 +5,7 @@ import IOSControlClient
 struct ListDevicesTool: MCPTool {
     static let name = "list_devices"
 
-    static let description = "USB로 연결된 실제 iOS 기기 목록을 반환합니다."
+    static let description = "USB로 연결된 실제 iOS 기기 목록을 반환합니다. 시뮬레이터 사용 시에는 호출할 필요 없습니다."
 
     static let inputSchema: Value = .object([
         "type": .string("object"),
