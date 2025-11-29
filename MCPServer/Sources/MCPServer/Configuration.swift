@@ -5,18 +5,18 @@ public struct Configuration: Sendable {
     /// 기본 설정
     public static let `default` = Configuration()
 
-    // MARK: - SimulatorAgent
+    // MARK: - AutomationServer
 
-    /// SimulatorAgent HTTP 서버 호스트
+    /// AutomationServer HTTP 서버 호스트
     public let agentHost: String
 
-    /// SimulatorAgent HTTP 서버 포트
+    /// AutomationServer HTTP 서버 포트
     public let agentPort: Int
 
-    /// SimulatorAgent 앱 이름
+    /// AutomationServer 앱 이름
     public let agentAppName: String
 
-    /// SimulatorAgent 번들 ID
+    /// AutomationServer 번들 ID
     public let agentBundleId: String
 
     // MARK: - 타임아웃
@@ -43,8 +43,8 @@ public struct Configuration: Sendable {
     public init(
         agentHost: String = "127.0.0.1",
         agentPort: Int = 22087,
-        agentAppName: String = "SimulatorAgentTests-Runner.app",
-        agentBundleId: String = "simulatoragent.SimulatorAgentTests.xctrunner",
+        agentAppName: String = "AutomationServerTests-Runner.app",
+        agentBundleId: String = "automationserver.AutomationServerTests.xctrunner",
         httpTimeout: TimeInterval = 30,
         serverStartTimeout: TimeInterval = 60,
         simulatorBootTimeout: TimeInterval = 60,

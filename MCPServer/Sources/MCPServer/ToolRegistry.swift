@@ -88,7 +88,7 @@ enum ToolRegistry {
 
         switch device.type {
         case .simulator:
-            try await SimulatorAgentRunner.shared.start()
+            try await AutomationServerRunner.shared.start()
 
         case .physical:
             try await DeviceAgentRunner.shared.start(udid: device.id)

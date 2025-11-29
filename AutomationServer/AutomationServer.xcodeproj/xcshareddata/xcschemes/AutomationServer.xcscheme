@@ -16,9 +16,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "D996D9982ED6FA0F004720F8"
-               BuildableName = "SimulatorAgent.app"
-               BlueprintName = "SimulatorAgent"
-               ReferencedContainer = "container:SimulatorAgent.xcodeproj">
+               BuildableName = "AutomationServer.app"
+               BlueprintName = "AutomationServer"
+               ReferencedContainer = "container:AutomationServer.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -36,9 +36,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "D929712A2ED6FA3800DF3AFA"
-               BuildableName = "SimulatorAgentTests.xctest"
-               BlueprintName = "SimulatorAgentTests"
-               ReferencedContainer = "container:SimulatorAgent.xcodeproj">
+               BuildableName = "AutomationServerTests.xctest"
+               BlueprintName = "AutomationServerTests"
+               ReferencedContainer = "container:AutomationServer.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -58,9 +58,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "D996D9982ED6FA0F004720F8"
-            BuildableName = "SimulatorAgent.app"
-            BlueprintName = "SimulatorAgent"
-            ReferencedContainer = "container:SimulatorAgent.xcodeproj">
+            BuildableName = "AutomationServer.app"
+            BlueprintName = "AutomationServer"
+            ReferencedContainer = "container:AutomationServer.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -75,9 +75,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "D996D9982ED6FA0F004720F8"
-            BuildableName = "SimulatorAgent.app"
-            BlueprintName = "SimulatorAgent"
-            ReferencedContainer = "container:SimulatorAgent.xcodeproj">
+            BuildableName = "AutomationServer.app"
+            BlueprintName = "AutomationServer"
+            ReferencedContainer = "container:AutomationServer.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

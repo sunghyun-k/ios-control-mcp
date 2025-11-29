@@ -7,14 +7,14 @@ VERSION_FILE := MCPServer/Sources/MCPServer/Version.swift
 # 공통 경로
 BUILD_DIR := $(CURDIR)/.build
 RELEASE_DIR := $(CURDIR)/release
-AGENT_BUILD_DIR := $(BUILD_DIR)/SimulatorAgent
-AGENT_PROJECT := SimulatorAgent/SimulatorAgent.xcodeproj
-AGENT_APP := $(AGENT_BUILD_DIR)/Build/Products/Debug-iphonesimulator/SimulatorAgentTests-Runner.app
-AGENT_BUNDLE_ID := simulatoragent.SimulatorAgentTests.xctrunner
+AGENT_BUILD_DIR := $(BUILD_DIR)/AutomationServer
+AGENT_PROJECT := AutomationServer/AutomationServer.xcodeproj
+AGENT_APP := $(AGENT_BUILD_DIR)/Build/Products/Debug-iphonesimulator/AutomationServerTests-Runner.app
+AGENT_BUNDLE_ID := automationserver.AutomationServerTests.xctrunner
 
 # 실기기용 경로
 DEVICE_AGENT_BUILD_DIR := $(BUILD_DIR)/DeviceAgent
-DEVICE_AGENT_APP := $(DEVICE_AGENT_BUILD_DIR)/Build/Products/Debug-iphoneos/SimulatorAgentTests-Runner.app
+DEVICE_AGENT_APP := $(DEVICE_AGENT_BUILD_DIR)/Build/Products/Debug-iphoneos/AutomationServerTests-Runner.app
 
 # 시뮬레이터 UDID (make UDID=xxx 로 지정 가능)
 UDID ?= $(shell $(CURDIR)/scripts/find-simulator.sh)
@@ -44,11 +44,11 @@ mcp-run: generate-version
 	IOS_CONTROL_PROJECT_PATH=$(CURDIR)/$(AGENT_PROJECT) \
 	swift run --package-path MCPServer --scratch-path $(BUILD_DIR)/MCPServer MCPServer
 
-# SimulatorAgent .app 빌드
+# AutomationServer .app 빌드
 agent:
 	xcodebuild build-for-testing \
 		-project $(AGENT_PROJECT) \
-		-scheme SimulatorAgent \
+		-scheme AutomationServer \
 		-destination 'generic/platform=iOS Simulator' \
 		-derivedDataPath $(AGENT_BUILD_DIR)
 
@@ -56,7 +56,7 @@ agent:
 playground:
 	swift run --package-path MCPServer --scratch-path $(BUILD_DIR)/MCPServer Playground $(ARGS)
 
-# SimulatorAgent 빌드 + 설치 + 실행
+# AutomationServer 빌드 + 설치 + 실행
 agent-run: agent
 ifndef UDID
 	$(error 시뮬레이터를 찾을 수 없습니다.)
@@ -69,7 +69,7 @@ endif
 device-agent:
 	xcodebuild build-for-testing \
 		-project $(AGENT_PROJECT) \
-		-scheme SimulatorAgent \
+		-scheme AutomationServer \
 		-destination 'generic/platform=iOS' \
 		-derivedDataPath $(DEVICE_AGENT_BUILD_DIR) \
 		$(if $(TEAM),DEVELOPMENT_TEAM=$(TEAM)) \
@@ -82,10 +82,10 @@ ifndef DEVICE_UDID
 endif
 	xcodebuild test \
 		-project $(AGENT_PROJECT) \
-		-scheme SimulatorAgent \
+		-scheme AutomationServer \
 		-destination "id=$(DEVICE_UDID)" \
 		-derivedDataPath $(DEVICE_AGENT_BUILD_DIR) \
-		-only-testing:SimulatorAgentTests/SimulatorAgentTests/testRunServer \
+		-only-testing:AutomationServerTests/AutomationServerTests/testRunServer \
 		$(if $(TEAM),DEVELOPMENT_TEAM=$(TEAM)) \
 		CODE_SIGN_STYLE=Automatic
 

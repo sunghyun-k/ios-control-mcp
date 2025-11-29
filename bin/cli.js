@@ -6,7 +6,7 @@ const fs = require("fs");
 
 const binDir = path.join(__dirname, "..", "vendor");
 const mcpServer = path.join(binDir, "MCPServer");
-const agentApp = path.join(binDir, "SimulatorAgentTests-Runner.app");
+const agentApp = path.join(binDir, "AutomationServerTests-Runner.app");
 
 if (!fs.existsSync(mcpServer)) {
   console.error("Error: MCPServer binary not found.");

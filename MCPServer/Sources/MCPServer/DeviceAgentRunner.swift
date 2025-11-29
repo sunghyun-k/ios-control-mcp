@@ -30,7 +30,7 @@ actor DeviceAgentRunner {
 
         self.rootDir = executableDir
         self.derivedDataPath = executableDir.appendingPathComponent(".build/DeviceAgent").path
-        self.xcodeProjectPath = executableDir.appendingPathComponent("SimulatorAgent/SimulatorAgent.xcodeproj").path
+        self.xcodeProjectPath = executableDir.appendingPathComponent("AutomationServer/AutomationServer.xcodeproj").path
     }
 
     /// Xcode 프로젝트 경로 찾기
@@ -107,7 +107,7 @@ actor DeviceAgentRunner {
         process.arguments = [
             "build-for-testing",
             "-project", projectPath,
-            "-scheme", "SimulatorAgent",
+            "-scheme", "AutomationServer",
             "-destination", "generic/platform=iOS",
             "-derivedDataPath", derivedDataPath,
             "DEVELOPMENT_TEAM=\(teamId)",
@@ -173,7 +173,7 @@ actor DeviceAgentRunner {
             "test-without-building",
             "-xctestrun", xctestrunPath,
             "-destination", "id=\(udid)",
-            "-only-testing:SimulatorAgentTests/SimulatorAgentTests/testRunServer"
+            "-only-testing:AutomationServerTests/AutomationServerTests/testRunServer"
         ]
 
         process.arguments = arguments

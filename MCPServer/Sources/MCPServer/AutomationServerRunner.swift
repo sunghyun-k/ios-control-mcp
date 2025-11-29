@@ -2,10 +2,10 @@ import Foundation
 import Common
 import IOSControlClient
 
-/// SimulatorAgent 프로세스 관리
+/// AutomationServer 프로세스 관리
 /// 빌드된 .app을 시뮬레이터에 설치하고 실행
-actor SimulatorAgentRunner {
-    static let shared = SimulatorAgentRunner()
+actor AutomationServerRunner {
+    static let shared = AutomationServerRunner()
 
     private let config: Configuration
     private let simctl: SimctlRunner
@@ -88,7 +88,7 @@ actor SimulatorAgentRunner {
 
     // MARK: - App Path Resolution
 
-    /// SimulatorAgent.app 경로 찾기
+    /// AutomationServer.app 경로 찾기
     /// 환경변수 IOS_CONTROL_AGENT_APP이 있으면 사용, 없으면 실행파일과 같은 디렉토리에서 찾음
     private func findAgentApp() -> URL? {
         let fm = FileManager.default

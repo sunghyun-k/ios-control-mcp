@@ -1,9 +1,9 @@
 import XCTest
 import os
 
-final class SimulatorAgentTests: XCTestCase {
+final class AutomationServerTests: XCTestCase {
 
-    private static let logger = Logger(subsystem: "ios-control", category: "SimulatorAgentTests")
+    private static let logger = Logger(subsystem: "ios-control", category: "AutomationServerTests")
 
     override func setUpWithError() throws {
         continueAfterFailure = true

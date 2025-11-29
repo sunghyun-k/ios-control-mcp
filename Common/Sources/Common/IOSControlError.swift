@@ -35,9 +35,9 @@ public enum IOSControlError: Error, LocalizedError {
         switch self {
         // 서버 관련
         case .serverNotRunning:
-            return "SimulatorAgent 서버가 실행 중이지 않습니다"
+            return "AutomationServer 서버가 실행 중이지 않습니다"
         case .serverTimeout(let seconds):
-            return "SimulatorAgent가 \(Int(seconds))초 내에 시작되지 않았습니다"
+            return "AutomationServer가 \(Int(seconds))초 내에 시작되지 않았습니다"
 
         // HTTP 관련
         case .httpError(let code):
@@ -61,7 +61,7 @@ public enum IOSControlError: Error, LocalizedError {
         case .simctlError(let command, let code):
             return "simctl \(command) 실패, 종료 코드: \(code)"
         case .simctlAppNotFound:
-            return "SimulatorAgentTests-Runner.app을 찾을 수 없습니다. 'make agent'로 빌드하거나 IOS_CONTROL_AGENT_APP 환경변수를 설정하세요."
+            return "AutomationServerTests-Runner.app을 찾을 수 없습니다. 'make agent'로 빌드하거나 IOS_CONTROL_AGENT_APP 환경변수를 설정하세요."
         case .simctlInstallFailed(let code):
             return "앱 설치 실패, 종료 코드: \(code)"
         case .simctlLaunchFailed(let code):

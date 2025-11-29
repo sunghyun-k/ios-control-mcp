@@ -17,24 +17,24 @@
 			containerPortal = D996D9912ED6FA0F004720F8 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = D996D9982ED6FA0F004720F8;
-			remoteInfo = SimulatorAgent;
+			remoteInfo = AutomationServer;
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		D929712B2ED6FA3800DF3AFA /* SimulatorAgentTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SimulatorAgentTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		D996D9992ED6FA0F004720F8 /* SimulatorAgent.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SimulatorAgent.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		D929712B2ED6FA3800DF3AFA /* AutomationServerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AutomationServerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		D996D9992ED6FA0F004720F8 /* AutomationServer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AutomationServer.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		D929712C2ED6FA3800DF3AFA /* SimulatorAgentTests */ = {
+		D929712C2ED6FA3800DF3AFA /* AutomationServerTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = SimulatorAgentTests;
+			path = AutomationServerTests;
 			sourceTree = "<group>";
 		};
-		D996D99B2ED6FA0F004720F8 /* SimulatorAgent */ = {
+		D996D99B2ED6FA0F004720F8 /* AutomationServer */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = SimulatorAgent;
+			path = AutomationServer;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -62,8 +62,8 @@
 		D996D9902ED6FA0F004720F8 = {
 			isa = PBXGroup;
 			children = (
-				D996D99B2ED6FA0F004720F8 /* SimulatorAgent */,
-				D929712C2ED6FA3800DF3AFA /* SimulatorAgentTests */,
+				D996D99B2ED6FA0F004720F8 /* AutomationServer */,
+				D929712C2ED6FA3800DF3AFA /* AutomationServerTests */,
 				D996D99A2ED6FA0F004720F8 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -71,8 +71,8 @@
 		D996D99A2ED6FA0F004720F8 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				D996D9992ED6FA0F004720F8 /* SimulatorAgent.app */,
-				D929712B2ED6FA3800DF3AFA /* SimulatorAgentTests.xctest */,
+				D996D9992ED6FA0F004720F8 /* AutomationServer.app */,
+				D929712B2ED6FA3800DF3AFA /* AutomationServerTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -80,9 +80,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		D929712A2ED6FA3800DF3AFA /* SimulatorAgentTests */ = {
+		D929712A2ED6FA3800DF3AFA /* AutomationServerTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = D92971352ED6FA3800DF3AFA /* Build configuration list for PBXNativeTarget "SimulatorAgentTests" */;
+			buildConfigurationList = D92971352ED6FA3800DF3AFA /* Build configuration list for PBXNativeTarget "AutomationServerTests" */;
 			buildPhases = (
 				D92971272ED6FA3800DF3AFA /* Sources */,
 				D92971282ED6FA3800DF3AFA /* Frameworks */,
@@ -94,20 +94,20 @@
 				D92971322ED6FA3800DF3AFA /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				D929712C2ED6FA3800DF3AFA /* SimulatorAgentTests */,
+				D929712C2ED6FA3800DF3AFA /* AutomationServerTests */,
 			);
-			name = SimulatorAgentTests;
+			name = AutomationServerTests;
 			packageProductDependencies = (
 				D96E3ACE2ED6FE1B00961826 /* FlyingFox */,
 				D9666B062ED82FEF007BEAF4 /* Common */,
 			);
-			productName = SimulatorAgentTests;
-			productReference = D929712B2ED6FA3800DF3AFA /* SimulatorAgentTests.xctest */;
+			productName = AutomationServerTests;
+			productReference = D929712B2ED6FA3800DF3AFA /* AutomationServerTests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
-		D996D9982ED6FA0F004720F8 /* SimulatorAgent */ = {
+		D996D9982ED6FA0F004720F8 /* AutomationServer */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = D996D9A42ED6FA10004720F8 /* Build configuration list for PBXNativeTarget "SimulatorAgent" */;
+			buildConfigurationList = D996D9A42ED6FA10004720F8 /* Build configuration list for PBXNativeTarget "AutomationServer" */;
 			buildPhases = (
 				D996D9952ED6FA0F004720F8 /* Sources */,
 				D996D9962ED6FA0F004720F8 /* Frameworks */,
@@ -118,13 +118,13 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				D996D99B2ED6FA0F004720F8 /* SimulatorAgent */,
+				D996D99B2ED6FA0F004720F8 /* AutomationServer */,
 			);
-			name = SimulatorAgent;
+			name = AutomationServer;
 			packageProductDependencies = (
 			);
-			productName = SimulatorAgent;
-			productReference = D996D9992ED6FA0F004720F8 /* SimulatorAgent.app */;
+			productName = AutomationServer;
+			productReference = D996D9992ED6FA0F004720F8 /* AutomationServer.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -146,7 +146,7 @@
 					};
 				};
 			};
-			buildConfigurationList = D996D9942ED6FA0F004720F8 /* Build configuration list for PBXProject "SimulatorAgent" */;
+			buildConfigurationList = D996D9942ED6FA0F004720F8 /* Build configuration list for PBXProject "AutomationServer" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -164,8 +164,8 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				D996D9982ED6FA0F004720F8 /* SimulatorAgent */,
-				D929712A2ED6FA3800DF3AFA /* SimulatorAgentTests */,
+				D996D9982ED6FA0F004720F8 /* AutomationServer */,
+				D929712A2ED6FA3800DF3AFA /* AutomationServerTests */,
 			);
 		};
 /* End PBXProject section */
@@ -207,7 +207,7 @@
 /* Begin PBXTargetDependency section */
 		D92971322ED6FA3800DF3AFA /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = D996D9982ED6FA0F004720F8 /* SimulatorAgent */;
+			target = D996D9982ED6FA0F004720F8 /* AutomationServer */;
 			targetProxy = D92971312ED6FA3800DF3AFA /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -221,12 +221,12 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = simulatoragent.SimulatorAgentTests;
+				PRODUCT_BUNDLE_IDENTIFIER = automationserver.AutomationServerTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = SimulatorAgent;
+				TEST_TARGET_NAME = AutomationServer;
 			};
 			name = Debug;
 		};
@@ -238,12 +238,12 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = simulatoragent.SimulatorAgentTests;
+				PRODUCT_BUNDLE_IDENTIFIER = automationserver.AutomationServerTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = SimulatorAgent;
+				TEST_TARGET_NAME = AutomationServer;
 			};
 			name = Release;
 		};
@@ -386,7 +386,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = simulatoragent;
+				PRODUCT_BUNDLE_IDENTIFIER = automationserver;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -415,7 +415,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = simulatoragent;
+				PRODUCT_BUNDLE_IDENTIFIER = automationserver;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -427,7 +427,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		D92971352ED6FA3800DF3AFA /* Build configuration list for PBXNativeTarget "SimulatorAgentTests" */ = {
+		D92971352ED6FA3800DF3AFA /* Build configuration list for PBXNativeTarget "AutomationServerTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				D92971332ED6FA3800DF3AFA /* Debug */,
@@ -436,7 +436,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		D996D9942ED6FA0F004720F8 /* Build configuration list for PBXProject "SimulatorAgent" */ = {
+		D996D9942ED6FA0F004720F8 /* Build configuration list for PBXProject "AutomationServer" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				D996D9A22ED6FA10004720F8 /* Debug */,
@@ -445,7 +445,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		D996D9A42ED6FA10004720F8 /* Build configuration list for PBXNativeTarget "SimulatorAgent" */ = {
+		D996D9A42ED6FA10004720F8 /* Build configuration list for PBXNativeTarget "AutomationServer" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				D996D9A52ED6FA10004720F8 /* Debug */,
