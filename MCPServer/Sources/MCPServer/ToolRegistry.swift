@@ -22,7 +22,6 @@ enum ToolRegistry {
             PinchTool.tool,
             // 정보 조회
             GetUITreeTool.tool,
-            GetForegroundAppTool.tool,
             ScreenshotTool.tool,
             // 앱 관리
             ListAppsTool.tool,
@@ -63,8 +62,6 @@ enum ToolRegistry {
         // 정보 조회
         case GetUITreeTool.name:
             return try await GetUITreeTool.handle(arguments: arguments, client: client)
-        case GetForegroundAppTool.name:
-            return try await GetForegroundAppTool.handle(arguments: arguments, client: client)
         case ScreenshotTool.name:
             return try await ScreenshotTool.handle(arguments: arguments, client: client)
         // 앱 관리
