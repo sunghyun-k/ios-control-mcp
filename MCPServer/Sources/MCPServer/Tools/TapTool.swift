@@ -13,8 +13,7 @@ struct TapTool: MCPTool {
         "properties": .object([
             "label": .object(["type": .string("string"), "description": .string("찾을 요소의 라벨/텍스트. get_ui_tree 결과에서 확인한 텍스트를 사용하세요.")]),
             "index": .object(["type": .string("integer"), "description": .string("동일 라벨이 여러 개일 때 몇 번째 요소인지 지정 (0부터 시작). get_ui_tree에서 라벨#인덱스 형식으로 표시됩니다.")]),
-            "duration": .object(["type": .string("number"), "description": .string("롱프레스 시간(초)")]),
-            "app_bundle_id": .object(["type": .string("string"), "description": .string("앱 번들 ID")])
+            "duration": .object(["type": .string("number"), "description": .string("롱프레스 시간(초)")])
         ]),
         "required": .array([.string("label")])
     ])
@@ -22,11 +21,7 @@ struct TapTool: MCPTool {
     typealias Arguments = TapArgs
 
     static func execute(args: TapArgs, client: any AgentClient) async throws -> [Tool.Content] {
-        var appBundleId = args.appBundleId
-        if appBundleId == nil {
-            appBundleId = try await client.foregroundApp().bundleId
-        }
-
+        let appBundleId = try await client.foregroundApp().bundleId
         let response = try await client.tree(appBundleId: appBundleId)
         guard let element = response.tree.findElement(byLabel: args.label, index: args.index) else {
             if let index = args.index {

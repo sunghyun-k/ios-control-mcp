@@ -28,12 +28,6 @@ struct TapArgs: ToolArguments {
     let label: String
     let index: Int?
     let duration: Double?
-    let appBundleId: String?
-
-    private enum CodingKeys: String, CodingKey {
-        case label, index, duration
-        case appBundleId = "app_bundle_id"
-    }
 }
 
 // MARK: - tap_coordinate
