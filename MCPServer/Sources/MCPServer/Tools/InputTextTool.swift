@@ -17,7 +17,7 @@ struct InputTextTool: MCPTool {
 
     typealias Arguments = InputTextArgs
 
-    static func execute(args: InputTextArgs, client: IOSControlClient) async throws -> [Tool.Content] {
+    static func execute(args: InputTextArgs, client: any AgentClient) async throws -> [Tool.Content] {
         try await client.inputText(args.text)
         return [.text("typed \"\(args.text)\"")]
     }

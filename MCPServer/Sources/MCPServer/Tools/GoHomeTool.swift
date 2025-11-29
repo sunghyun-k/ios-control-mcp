@@ -14,7 +14,7 @@ struct GoHomeTool: MCPTool {
 
     typealias Arguments = EmptyArgs
 
-    static func execute(args: EmptyArgs, client: IOSControlClient) async throws -> [Tool.Content] {
+    static func execute(args: EmptyArgs, client: any AgentClient) async throws -> [Tool.Content] {
         try await client.goHome()
         return [.text("pressed home button")]
     }

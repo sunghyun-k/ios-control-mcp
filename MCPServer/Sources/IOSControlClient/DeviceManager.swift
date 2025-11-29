@@ -3,6 +3,9 @@ import Foundation
 /// 기기 관리자
 /// 시뮬레이터와 실제 iOS 기기를 통합 관리합니다.
 public actor DeviceManager {
+    /// 싱글톤 인스턴스
+    public static let shared = DeviceManager()
+
     /// 에이전트 포트 번호
     public static let agentPort: UInt16 = 22087
 
@@ -17,7 +20,7 @@ public actor DeviceManager {
     private var isListeningUSB = false
     private var physicalDevices: [String: USBMuxDeviceInfo] = [:]  // UDID -> Info
 
-    public init() {}
+    private init() {}
 
     // MARK: - Device Listing
 
@@ -190,6 +193,30 @@ public actor DeviceManager {
         }
 
         return USBHTTPClient(deviceID: info.deviceID, port: Self.agentPort)
+    }
+
+    /// 현재 선택된 기기에 맞는 AgentClient 반환
+    public func getAgentClient() async throws -> any AgentClient {
+        guard let device = try await getCurrentDevice() else {
+            throw DeviceManagerError.noDeviceSelected
+        }
+
+        switch device.type {
+        case .simulator:
+            return IOSControlClient(port: Int(Self.agentPort))
+
+        case .physical:
+            return try getUSBHTTPClient(udid: device.id)
+        }
+    }
+
+    /// 자동 기기 선택 후 AgentClient 반환
+    /// 선택된 기기가 없으면 자동으로 선택합니다.
+    public func getOrAutoSelectAgentClient() async throws -> any AgentClient {
+        if currentDeviceId == nil {
+            _ = try await autoSelectDevice()
+        }
+        return try await getAgentClient()
     }
 
     /// 캐시된 실기기 정보 조회 (디버깅용)

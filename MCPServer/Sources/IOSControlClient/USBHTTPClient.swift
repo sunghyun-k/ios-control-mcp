@@ -1,9 +1,9 @@
 import Foundation
 import Common
 
-/// USB를 통한 HTTP 클라이언트
+/// USB를 통한 HTTP 클라이언트 (실기기용)
 /// usbmuxd 연결을 사용하여 실기기의 Agent와 HTTP 통신
-public final class USBHTTPClient: @unchecked Sendable {
+public final class USBHTTPClient: AgentClient, @unchecked Sendable {
     private let deviceID: Int
     private let port: UInt16
 
@@ -162,7 +162,7 @@ public final class USBHTTPClient: @unchecked Sendable {
     }
 }
 
-// MARK: - High-Level API
+// MARK: - AgentClient Protocol
 
 extension USBHTTPClient {
     /// 서버 상태 확인
@@ -177,30 +177,45 @@ extension USBHTTPClient {
         return try JSONDecoder().decode(TreeResponse.self, from: data)
     }
 
-    /// 스크린샷
-    public func screenshot() async throws -> Data {
-        try await get("screenshot")
-    }
-
     /// 포그라운드 앱
     public func foregroundApp() async throws -> ForegroundAppResponse {
         let data = try await get("foregroundApp")
         return try JSONDecoder().decode(ForegroundAppResponse.self, from: data)
     }
 
-    /// 탭
-    public func tap(x: Double, y: Double, duration: TimeInterval? = nil) async throws {
-        _ = try await post("tap", body: TapRequest(x: x, y: y, duration: duration))
+    /// 스크린샷
+    public func screenshot(format: String = "png") async throws -> Data {
+        try await get("screenshot?format=\(format)")
     }
 
-    /// 홈으로 이동
-    public func goHome() async throws {
-        _ = try await get("goHome")
+    /// 탭
+    public func tap(_ request: TapRequest) async throws {
+        _ = try await post("tap", body: request)
+    }
+
+    /// 스와이프
+    public func swipe(_ request: SwipeRequest) async throws {
+        _ = try await post("swipe", body: request)
+    }
+
+    /// 핀치
+    public func pinch(_ request: PinchRequest) async throws {
+        _ = try await post("pinch", body: request)
+    }
+
+    /// 텍스트 입력
+    public func inputText(_ request: InputTextRequest) async throws {
+        _ = try await post("inputText", body: request)
     }
 
     /// 앱 실행
     public func launchApp(bundleId: String) async throws {
         _ = try await post("launchApp", body: LaunchAppRequest(bundleId: bundleId))
+    }
+
+    /// 홈으로 이동
+    public func goHome() async throws {
+        _ = try await get("goHome")
     }
 }
 

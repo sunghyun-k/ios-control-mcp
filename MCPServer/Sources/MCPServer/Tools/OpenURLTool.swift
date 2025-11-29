@@ -17,7 +17,7 @@ struct OpenURLTool: MCPTool {
 
     typealias Arguments = URLArgs
 
-    static func execute(args: URLArgs, client: IOSControlClient) async throws -> [Tool.Content] {
+    static func execute(args: URLArgs, client: any AgentClient) async throws -> [Tool.Content] {
         try await client.openURL(args.url)
         return [.text("opened \(args.url)")]
     }

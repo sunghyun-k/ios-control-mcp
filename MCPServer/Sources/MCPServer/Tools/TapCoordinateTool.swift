@@ -19,7 +19,7 @@ struct TapCoordinateTool: MCPTool {
 
     typealias Arguments = TapCoordinateArgs
 
-    static func execute(args: TapCoordinateArgs, client: IOSControlClient) async throws -> [Tool.Content] {
+    static func execute(args: TapCoordinateArgs, client: any AgentClient) async throws -> [Tool.Content] {
         try await client.tap(x: args.x, y: args.y, duration: args.duration)
 
         if let duration = args.duration {

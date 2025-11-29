@@ -1,8 +1,8 @@
 import Foundation
 import Common
 
-/// IOSControl HTTP 클라이언트
-public final class IOSControlClient: @unchecked Sendable {
+/// IOSControl HTTP 클라이언트 (시뮬레이터용)
+public final class IOSControlClient: AgentClient, @unchecked Sendable {
     private let baseURL: URL
     private let session: URLSession
     private let simctl: SimctlRunner

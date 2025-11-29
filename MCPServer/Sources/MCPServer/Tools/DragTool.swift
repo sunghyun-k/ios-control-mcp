@@ -23,7 +23,7 @@ struct DragTool: MCPTool {
 
     typealias Arguments = DragArgs
 
-    static func execute(args: DragArgs, client: IOSControlClient) async throws -> [Tool.Content] {
+    static func execute(args: DragArgs, client: any AgentClient) async throws -> [Tool.Content] {
         let appBundleId = try await client.foregroundApp().bundleId
         let response = try await client.tree(appBundleId: appBundleId)
 

@@ -21,7 +21,7 @@ struct TapTool: MCPTool {
 
     typealias Arguments = TapArgs
 
-    static func execute(args: TapArgs, client: IOSControlClient) async throws -> [Tool.Content] {
+    static func execute(args: TapArgs, client: any AgentClient) async throws -> [Tool.Content] {
         var appBundleId = args.appBundleId
         if appBundleId == nil {
             appBundleId = try await client.foregroundApp().bundleId

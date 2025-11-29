@@ -14,7 +14,7 @@ struct GetForegroundAppTool: MCPTool {
 
     typealias Arguments = EmptyArgs
 
-    static func execute(args: EmptyArgs, client: IOSControlClient) async throws -> [Tool.Content] {
+    static func execute(args: EmptyArgs, client: any AgentClient) async throws -> [Tool.Content] {
         let response = try await client.foregroundApp()
         return [.text(response.bundleId ?? "")]
     }

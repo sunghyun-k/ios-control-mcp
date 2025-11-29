@@ -17,7 +17,7 @@ struct SetPasteboardTool: MCPTool {
 
     typealias Arguments = ContentArgs
 
-    static func execute(args: ContentArgs, client: IOSControlClient) async throws -> [Tool.Content] {
+    static func execute(args: ContentArgs, client: any AgentClient) async throws -> [Tool.Content] {
         try await client.setPasteboard(args.content)
         return [.text("set pasteboard to \"\(args.content)\"")]
     }

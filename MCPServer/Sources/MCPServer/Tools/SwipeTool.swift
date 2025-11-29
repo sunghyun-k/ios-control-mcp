@@ -22,7 +22,7 @@ struct SwipeTool: MCPTool {
 
     typealias Arguments = SwipeArgs
 
-    static func execute(args: SwipeArgs, client: IOSControlClient) async throws -> [Tool.Content] {
+    static func execute(args: SwipeArgs, client: any AgentClient) async throws -> [Tool.Content] {
         let duration = args.duration ?? GestureDefaults.swipeDuration
         try await client.swipe(startX: args.startX, startY: args.startY, endX: args.endX, endY: args.endY, duration: duration, holdDuration: args.holdDuration, liftDelay: GestureDefaults.liftDelay)
         return [.text("swiped (\(args.startX), \(args.startY)) -> (\(args.endX), \(args.endY))")]

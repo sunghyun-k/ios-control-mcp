@@ -17,7 +17,7 @@ struct LaunchAppTool: MCPTool {
 
     typealias Arguments = BundleIdArgs
 
-    static func execute(args: BundleIdArgs, client: IOSControlClient) async throws -> [Tool.Content] {
+    static func execute(args: BundleIdArgs, client: any AgentClient) async throws -> [Tool.Content] {
         try await client.launchApp(bundleId: args.bundleId)
         return [.text("launched \(args.bundleId)")]
     }

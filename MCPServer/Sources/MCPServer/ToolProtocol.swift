@@ -18,7 +18,7 @@ protocol MCPTool {
     associatedtype Arguments: ToolArguments
 
     /// 도구 실행
-    static func execute(args: Arguments, client: IOSControlClient) async throws -> [Tool.Content]
+    static func execute(args: Arguments, client: any AgentClient) async throws -> [Tool.Content]
 }
 
 extension MCPTool {
@@ -32,7 +32,7 @@ extension MCPTool {
     }
 
     /// 핸들러 래핑
-    static func handle(arguments: [String: Value]?, client: IOSControlClient) async throws -> [Tool.Content] {
+    static func handle(arguments: [String: Value]?, client: any AgentClient) async throws -> [Tool.Content] {
         let args = try Arguments(from: arguments)
         return try await execute(args: args, client: client)
     }

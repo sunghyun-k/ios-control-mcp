@@ -4,8 +4,7 @@ import IOSControlClient
 print("=== 실기기 USB 연결 테스트 ===\n")
 
 // 1. 기기 목록 확인
-let deviceManager = DeviceManager()
-let devices = try await deviceManager.listAllDevices()
+let devices = try await DeviceManager.shared.listAllDevices()
 
 let physicals = devices.filter { $0.type == .physical }
 
@@ -20,7 +19,7 @@ guard let physicalDevice = physicals.first else {
 print("✓ 실기기 발견: \(physicalDevice.id)")
 
 // 2. USB 기기 정보 확인
-if let usbInfo = await deviceManager.getPhysicalDeviceInfo(udid: physicalDevice.id) {
+if let usbInfo = await DeviceManager.shared.getPhysicalDeviceInfo(udid: physicalDevice.id) {
     print("  - DeviceID: \(usbInfo.deviceID)")
     print("  - ConnectionType: \(usbInfo.connectionType)")
     if let productID = usbInfo.productID {
@@ -32,7 +31,7 @@ if let usbInfo = await deviceManager.getPhysicalDeviceInfo(udid: physicalDevice.
 print("\n--- Agent 연결 테스트 ---")
 
 do {
-    let usbClient = try await deviceManager.getUSBHTTPClient(udid: physicalDevice.id)
+    let usbClient = try await DeviceManager.shared.getUSBHTTPClient(udid: physicalDevice.id)
 
     print("Agent 상태 확인 중...")
     let status = try await usbClient.status()
@@ -45,11 +44,7 @@ do {
     let treeString = TreeFormatter.format(tree.tree, showCoords: false)
 
     print("✓ UI Tree 조회 성공!")
-    let preview = treeString.prefix(1500)
-    print(preview)
-    if treeString.count > 1500 {
-        print("... (총 \(treeString.count)자)")
-    }
+    print(treeString)
 
 } catch USBHTTPError.httpError(let code) {
     print("❌ HTTP 에러: \(code)")

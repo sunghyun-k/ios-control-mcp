@@ -25,7 +25,7 @@ struct ScrollTool: MCPTool {
 
     typealias Arguments = ScrollArgs
 
-    static func execute(args: ScrollArgs, client: IOSControlClient) async throws -> [Tool.Content] {
+    static func execute(args: ScrollArgs, client: any AgentClient) async throws -> [Tool.Content] {
         let distance = args.distance ?? GestureDefaults.scrollDistance
         let duration = args.duration ?? GestureDefaults.scrollDuration
         let response = try await client.tree()

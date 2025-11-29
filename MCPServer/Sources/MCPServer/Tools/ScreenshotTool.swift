@@ -14,7 +14,7 @@ struct ScreenshotTool: MCPTool {
 
     typealias Arguments = EmptyArgs
 
-    static func execute(args: EmptyArgs, client: IOSControlClient) async throws -> [Tool.Content] {
+    static func execute(args: EmptyArgs, client: any AgentClient) async throws -> [Tool.Content] {
         let data = try await client.screenshot()
         let base64 = data.base64EncodedString()
         return [.image(data: base64, mimeType: "image/png", metadata: nil)]

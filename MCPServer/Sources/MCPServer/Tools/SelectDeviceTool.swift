@@ -20,14 +20,12 @@ struct SelectDeviceTool: MCPTool {
 
     typealias Arguments = SelectDeviceArgs
 
-    static func execute(args: Arguments, client: IOSControlClient) async throws -> [Tool.Content] {
-        let deviceManager = DeviceManager()
-
-        // 기기 선택
-        try await deviceManager.selectDevice(udid: args.udid)
+    static func execute(args: Arguments, client: any AgentClient) async throws -> [Tool.Content] {
+        // 기기 선택 (싱글톤 사용)
+        try await DeviceManager.shared.selectDevice(udid: args.udid)
 
         // 선택된 기기 정보 반환
-        if let device = try await deviceManager.getCurrentDevice() {
+        if let device = try await DeviceManager.shared.getCurrentDevice() {
             let typeStr = device.type == .simulator ? "Simulator" : "Physical Device"
             var message = "Selected: \(device.name) (\(typeStr))\n"
             message += "UDID: \(device.id)\n"

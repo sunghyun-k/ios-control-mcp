@@ -38,10 +38,10 @@ enum ToolRegistry {
 
     /// 도구 이름으로 핸들러 조회 및 실행
     static func handle(name: String, arguments: [String: Value]?) async throws -> [Tool.Content] {
-        let config = Configuration.default
-        let client = IOSControlClient(host: config.agentHost, port: config.agentPort, httpTimeout: config.httpTimeout)
+        // 선택된 기기(또는 자동 선택)에 맞는 클라이언트 획득
+        let client = try await DeviceManager.shared.getOrAutoSelectAgentClient()
 
-        // Agent 서버 실행 보장
+        // Agent 서버 실행 보장 (시뮬레이터의 경우에만)
         try await ensureServerRunning(client: client)
 
         switch name {
@@ -93,11 +93,17 @@ enum ToolRegistry {
         }
     }
 
-    /// 서버가 실행 중인지 확인하고, 실행 중이지 않으면 SimulatorAgent 시작
-    private static func ensureServerRunning(client: IOSControlClient) async throws {
+    /// 서버가 실행 중인지 확인하고, 시뮬레이터인 경우 SimulatorAgent 시작
+    private static func ensureServerRunning(client: any AgentClient) async throws {
         if await client.isServerRunning() {
             return
         }
-        try await SimulatorAgentRunner.shared.start()
+
+        // 시뮬레이터인 경우에만 자동 시작
+        if let device = try await DeviceManager.shared.getCurrentDevice(),
+           device.type == .simulator {
+            try await SimulatorAgentRunner.shared.start()
+        }
+        // 실기기인 경우 Agent가 이미 실행 중이어야 함 (수동 설치/실행 필요)
     }
 }

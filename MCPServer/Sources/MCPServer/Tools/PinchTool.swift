@@ -20,7 +20,7 @@ struct PinchTool: MCPTool {
 
     typealias Arguments = PinchArgs
 
-    static func execute(args: PinchArgs, client: IOSControlClient) async throws -> [Tool.Content] {
+    static func execute(args: PinchArgs, client: any AgentClient) async throws -> [Tool.Content] {
         let response = try await client.tree()
         let frame = response.tree.frame
 

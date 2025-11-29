@@ -20,9 +20,8 @@ struct ListDevicesTool: MCPTool {
 
     typealias Arguments = ListDevicesArgs
 
-    static func execute(args: Arguments, client: IOSControlClient) async throws -> [Tool.Content] {
-        let deviceManager = DeviceManager()
-        let allDevices = try await deviceManager.listAllDevices()
+    static func execute(args: Arguments, client: any AgentClient) async throws -> [Tool.Content] {
+        let allDevices = try await DeviceManager.shared.listAllDevices()
 
         // 타입 필터링
         let filteredDevices: [DeviceInfo]
