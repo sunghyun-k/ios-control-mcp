@@ -5,7 +5,7 @@ import IOSControlClient
 struct ScrollTool: MCPTool {
     static let name = "scroll"
 
-    static let description = "화면을 스크롤합니다. swipe의 고수준 래퍼입니다. down=아래 내용 보기(위로 스와이프), up=위 내용 보기(아래로 스와이프)"
+    static let description = "화면을 스크롤합니다. down=아래 내용 보기, up=위 내용 보기"
 
     static let inputSchema: Value = .object([
         "type": .string("object"),

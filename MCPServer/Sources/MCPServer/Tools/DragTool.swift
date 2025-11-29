@@ -6,7 +6,7 @@ import IOSControlClient
 struct DragTool: MCPTool {
     static let name = "drag"
 
-    static let description = "라벨로 UI 요소를 찾아 드래그합니다. swipe의 고수준 래퍼입니다. 리스트 항목 재정렬 등에 사용합니다."
+    static let description = "라벨로 UI 요소를 찾아 드래그합니다. 리스트 항목 재정렬 시 Reorder 같은 드래그 핸들을 from_label로 선택하세요."
 
     static let inputSchema: Value = .object([
         "type": .string("object"),
