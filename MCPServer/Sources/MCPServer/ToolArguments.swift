@@ -150,5 +150,5 @@ struct ListDevicesArgs: ToolArguments {
 // MARK: - select_device
 
 struct SelectDeviceArgs: ToolArguments {
-    let udid: String
+    let udid: String?
 }

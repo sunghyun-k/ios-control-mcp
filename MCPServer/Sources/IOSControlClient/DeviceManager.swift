@@ -84,6 +84,11 @@ public actor DeviceManager {
         currentDeviceId
     }
 
+    /// 기기 선택 해제 (자동 선택 모드로 전환)
+    public func clearSelection() {
+        currentDeviceId = nil
+    }
+
     /// 현재 선택된 기기 정보
     public func getCurrentDevice() async throws -> DeviceInfo? {
         guard let udid = currentDeviceId else { return nil }
