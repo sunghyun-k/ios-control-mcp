@@ -5,7 +5,7 @@ import IOSControlClient
 struct PinchTool: MCPTool {
     static let name = "pinch"
 
-    static let description = "핀치 제스처를 수행합니다. 지도나 이미지 확대/축소에 사용합니다."
+    static let description = "핀치 제스처를 수행합니다. scale > 1.0이면 확대, < 1.0이면 축소"
 
     static let inputSchema: Value = .object([
         "type": .string("object"),

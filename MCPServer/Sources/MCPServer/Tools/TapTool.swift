@@ -6,7 +6,7 @@ import IOSControlClient
 struct TapTool: MCPTool {
     static let name = "tap"
 
-    static let description = "라벨(텍스트)로 UI 요소를 찾아 탭합니다. 요소를 탭할 때 이 도구를 우선 사용하세요. get_ui_tree에서 확인한 텍스트를 label 파라미터에 전달합니다."
+    static let description = "라벨로 UI 요소를 찾아 탭합니다."
 
     static let inputSchema: Value = .object([
         "type": .string("object"),
