@@ -20,13 +20,16 @@ public struct SwipeRequest: Codable, Sendable {
     public let endX: Double
     public let endY: Double
     public let duration: TimeInterval
+    /// 터치 후 스와이프 시작 전 대기 시간 (드래그용)
+    public let holdDuration: TimeInterval?
 
-    public init(startX: Double, startY: Double, endX: Double, endY: Double, duration: TimeInterval = 0.5) {
+    public init(startX: Double, startY: Double, endX: Double, endY: Double, duration: TimeInterval = 0.5, holdDuration: TimeInterval? = nil) {
         self.startX = startX
         self.startY = startY
         self.endX = endX
         self.endY = endY
         self.duration = duration
+        self.holdDuration = holdDuration
     }
 }
 

@@ -73,8 +73,8 @@ public final class IOSControlClient: @unchecked Sendable {
     }
 
     /// 스와이프 (좌표 직접 지정)
-    public func swipe(startX: Double, startY: Double, endX: Double, endY: Double, duration: TimeInterval = 0.5) async throws {
-        try await swipe(SwipeRequest(startX: startX, startY: startY, endX: endX, endY: endY, duration: duration))
+    public func swipe(startX: Double, startY: Double, endX: Double, endY: Double, duration: TimeInterval = 0.5, holdDuration: TimeInterval? = nil) async throws {
+        try await swipe(SwipeRequest(startX: startX, startY: startY, endX: endX, endY: endY, duration: duration, holdDuration: holdDuration))
     }
 
     /// 텍스트 입력

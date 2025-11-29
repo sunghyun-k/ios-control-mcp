@@ -69,11 +69,13 @@ struct ScrollArgs: ToolArguments {
     let distance: Double?
     let startX: Double?
     let startY: Double?
+    let holdDuration: Double?
 
     private enum CodingKeys: String, CodingKey {
         case direction, distance
         case startX = "start_x"
         case startY = "start_y"
+        case holdDuration = "hold_duration"
     }
 }
 

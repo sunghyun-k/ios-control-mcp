@@ -17,7 +17,8 @@ struct ScrollTool: MCPTool {
             ]),
             "distance": .object(["type": .string("number"), "description": .string("스크롤 거리(픽셀). 기본값 300")]),
             "start_x": .object(["type": .string("number"), "description": .string("시작 X 좌표")]),
-            "start_y": .object(["type": .string("number"), "description": .string("시작 Y 좌표")])
+            "start_y": .object(["type": .string("number"), "description": .string("시작 Y 좌표")]),
+            "hold_duration": .object(["type": .string("number"), "description": .string("터치 후 스크롤 시작 전 대기 시간(초). 항목 드래그 시 사용")])
         ]),
         "required": .array([.string("direction")])
     ])
@@ -33,8 +34,12 @@ struct ScrollTool: MCPTool {
         let y = args.startY ?? (frame.height / 2)
 
         let endY = args.direction == "down" ? y - distance : y + distance
-        try await client.swipe(startX: x, startY: y, endX: x, endY: endY, duration: 0.3)
+        try await client.swipe(startX: x, startY: y, endX: x, endY: endY, duration: 0.3, holdDuration: args.holdDuration)
 
-        return [.text("scrolled \(args.direction) \(distance)px from (\(x), \(y))")]
+        var message = "scrolled \(args.direction) \(distance)px from (\(x), \(y))"
+        if let hold = args.holdDuration {
+            message += " with \(hold)s hold"
+        }
+        return [.text(message)]
     }
 }

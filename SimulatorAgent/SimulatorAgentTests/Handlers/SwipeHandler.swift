@@ -9,7 +9,7 @@ struct SwipeHandler: NoResponseHandler {
         let start = CGPoint(x: request.startX, y: request.startY)
         let end = CGPoint(x: request.endX, y: request.endY)
         let eventRecord = EventRecord(orientation: .portrait)
-        _ = eventRecord.addSwipeEvent(start: start, end: end, duration: request.duration)
+        _ = eventRecord.addSwipeEvent(start: start, end: end, duration: request.duration, holdDuration: request.holdDuration)
         try await RunnerDaemonProxy.shared.synthesize(eventRecord: eventRecord)
     }
 }
