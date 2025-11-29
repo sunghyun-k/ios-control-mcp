@@ -16,4 +16,7 @@ enum GestureDefaults {
 
     /// scroll 기본 거리 (픽셀)
     static let scrollDistance: Double = 300
+
+    /// swipe 끝 지점에서 손을 때기 전 대기 시간 (초)
+    static let liftDelay: Double = 0.1
 }

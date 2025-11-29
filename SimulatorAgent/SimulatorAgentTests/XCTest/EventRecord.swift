@@ -28,11 +28,14 @@ final class EventRecord: NSObject {
         return add(path)
     }
 
-    func addSwipeEvent(start: CGPoint, end: CGPoint, duration: TimeInterval, holdDuration: TimeInterval? = nil) -> Self {
+    func addSwipeEvent(start: CGPoint, end: CGPoint, duration: TimeInterval, holdDuration: TimeInterval? = nil, liftDelay: TimeInterval? = nil) -> Self {
         var path = PointerEventPath.pathForTouch(at: start)
         path.offset += holdDuration ?? Constants.defaultTapDuration
         path.moveTo(point: end)
         path.offset += duration
+        if let liftDelay = liftDelay {
+            path.offset += liftDelay
+        }
         path.liftUp()
         return add(path)
     }

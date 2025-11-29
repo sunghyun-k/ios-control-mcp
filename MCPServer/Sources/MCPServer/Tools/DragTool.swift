@@ -55,7 +55,8 @@ struct DragTool: MCPTool {
             endX: toCenter.x,
             endY: toCenter.y,
             duration: duration,
-            holdDuration: holdDuration
+            holdDuration: holdDuration,
+            liftDelay: GestureDefaults.liftDelay
         )
 
         let fromDesc = args.fromIndex != nil ? "\"\(args.fromLabel)\"#\(args.fromIndex!)" : "\"\(args.fromLabel)\""

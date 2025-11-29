@@ -37,7 +37,7 @@ struct ScrollTool: MCPTool {
         // down = 아래 내용을 보고 싶다 = 위로 스와이프 (endY < startY)
         // up = 위 내용을 보고 싶다 = 아래로 스와이프 (endY > startY)
         let endY = args.direction == "down" ? y - distance : y + distance
-        try await client.swipe(startX: x, startY: y, endX: x, endY: endY, duration: duration)
+        try await client.swipe(startX: x, startY: y, endX: x, endY: endY, duration: duration, liftDelay: GestureDefaults.liftDelay)
 
         return [.text("scrolled \(args.direction) \(Int(distance))px")]
     }
