@@ -52,6 +52,7 @@ struct SwipeArgs: ToolArguments {
     let endX: Double
     let endY: Double
     let duration: Double?
+    let holdDuration: Double?
 
     private enum CodingKeys: String, CodingKey {
         case startX = "start_x"
@@ -59,6 +60,7 @@ struct SwipeArgs: ToolArguments {
         case endX = "end_x"
         case endY = "end_y"
         case duration
+        case holdDuration = "hold_duration"
     }
 }
 
@@ -69,13 +71,11 @@ struct ScrollArgs: ToolArguments {
     let distance: Double?
     let startX: Double?
     let startY: Double?
-    let holdDuration: Double?
 
     private enum CodingKeys: String, CodingKey {
         case direction, distance
         case startX = "start_x"
         case startY = "start_y"
-        case holdDuration = "hold_duration"
     }
 }
 

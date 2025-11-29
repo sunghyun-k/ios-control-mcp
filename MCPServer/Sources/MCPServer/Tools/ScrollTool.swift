@@ -5,7 +5,7 @@ import IOSControlClient
 struct ScrollTool: MCPTool {
     static let name = "scroll"
 
-    static let description = "화면을 스크롤합니다."
+    static let description = "화면을 스크롤합니다. down=아래 내용 보기(위로 스와이프), up=위 내용 보기(아래로 스와이프)"
 
     static let inputSchema: Value = .object([
         "type": .string("object"),
@@ -13,12 +13,11 @@ struct ScrollTool: MCPTool {
             "direction": .object([
                 "type": .string("string"),
                 "enum": .array([.string("up"), .string("down")]),
-                "description": .string("스크롤 방향")
+                "description": .string("스크롤 방향. down=아래 내용 보기, up=위 내용 보기")
             ]),
             "distance": .object(["type": .string("number"), "description": .string("스크롤 거리(픽셀). 기본값 300")]),
             "start_x": .object(["type": .string("number"), "description": .string("시작 X 좌표")]),
-            "start_y": .object(["type": .string("number"), "description": .string("시작 Y 좌표")]),
-            "hold_duration": .object(["type": .string("number"), "description": .string("터치 후 스크롤 시작 전 대기 시간(초). 항목 드래그 시 사용")])
+            "start_y": .object(["type": .string("number"), "description": .string("시작 Y 좌표")])
         ]),
         "required": .array([.string("direction")])
     ])
@@ -33,13 +32,11 @@ struct ScrollTool: MCPTool {
         let x = args.startX ?? (frame.width / 2)
         let y = args.startY ?? (frame.height / 2)
 
+        // down = 아래 내용을 보고 싶다 = 위로 스와이프 (endY < startY)
+        // up = 위 내용을 보고 싶다 = 아래로 스와이프 (endY > startY)
         let endY = args.direction == "down" ? y - distance : y + distance
-        try await client.swipe(startX: x, startY: y, endX: x, endY: endY, duration: 0.3, holdDuration: args.holdDuration)
+        try await client.swipe(startX: x, startY: y, endX: x, endY: endY, duration: 0.3)
 
-        var message = "scrolled \(args.direction) \(distance)px from (\(x), \(y))"
-        if let hold = args.holdDuration {
-            message += " with \(hold)s hold"
-        }
-        return [.text(message)]
+        return [.text("scrolled \(args.direction) \(distance)px")]
     }
 }
