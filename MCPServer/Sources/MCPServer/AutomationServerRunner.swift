@@ -65,13 +65,13 @@ actor AutomationServerRunner {
     }
 
     /// 서버 중지
-    func stop() {
+    private func stop() {
         guard let deviceId = currentDeviceId else { return }
         simctl.terminateApp(deviceId: deviceId, bundleId: config.agentBundleId)
     }
 
     /// 서버가 실행 중인지 확인 (실제 HTTP 응답 기준)
-    func isRunning() async -> Bool {
+    private func isRunning() async -> Bool {
         do {
             let urlConfig = URLSessionConfiguration.default
             urlConfig.timeoutIntervalForRequest = config.statusCheckTimeout

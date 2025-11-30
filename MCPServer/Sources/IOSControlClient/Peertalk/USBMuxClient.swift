@@ -8,9 +8,7 @@ public enum USBMuxError: Error {
     case sendFailed(Int32)
     case receiveFailed(Int32)
     case invalidPacket
-    case deviceNotFound
     case connectionRefused
-    case timeout
     case alreadyListening
 }
 
@@ -67,15 +65,6 @@ public actor USBMuxClient {
         }
 
         self.fileDescriptor = fd
-    }
-
-    /// 연결 해제
-    public func disconnect() {
-        guard fileDescriptor >= 0 else { return }
-        close(fileDescriptor)
-        fileDescriptor = -1
-        isListening = false
-        connectedDevices.removeAll()
     }
 
     // MARK: - Listening
@@ -218,16 +207,6 @@ public actor USBMuxClient {
 
         // 연결된 소켓 반환
         return fd
-    }
-
-    /// 현재 연결된 기기 목록
-    public func getConnectedDevices() -> [USBMuxDeviceInfo] {
-        Array(connectedDevices.values)
-    }
-
-    /// UDID로 기기 찾기
-    public func findDevice(udid: String) -> USBMuxDeviceInfo? {
-        connectedDevices.values.first { $0.serialNumber == udid }
     }
 
     // MARK: - Packet I/O

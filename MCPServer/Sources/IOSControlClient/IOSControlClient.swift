@@ -62,29 +62,14 @@ public final class IOSControlClient: AgentClient, @unchecked Sendable {
         _ = try await post("tap", body: request)
     }
 
-    /// 탭 (좌표 직접 지정)
-    public func tap(x: Double, y: Double, duration: TimeInterval? = nil) async throws {
-        try await tap(TapRequest(x: x, y: y, duration: duration))
-    }
-
     /// 스와이프
     public func swipe(_ request: SwipeRequest) async throws {
         _ = try await post("swipe", body: request)
     }
 
-    /// 스와이프 (좌표 직접 지정)
-    public func swipe(startX: Double, startY: Double, endX: Double, endY: Double, duration: TimeInterval = 0.5, holdDuration: TimeInterval? = nil, liftDelay: TimeInterval? = nil) async throws {
-        try await swipe(SwipeRequest(startX: startX, startY: startY, endX: endX, endY: endY, duration: duration, holdDuration: holdDuration, liftDelay: liftDelay))
-    }
-
     /// 텍스트 입력
     public func inputText(_ request: InputTextRequest) async throws {
         _ = try await post("inputText", body: request)
-    }
-
-    /// 텍스트 입력 (문자열 직접 지정)
-    public func inputText(_ text: String) async throws {
-        try await inputText(InputTextRequest(text: text))
     }
 
     /// UI 트리 조회
@@ -134,16 +119,6 @@ public final class IOSControlClient: AgentClient, @unchecked Sendable {
         return data
     }
 
-    /// 서버가 실행 중인지 확인
-    public func isServerRunning() async -> Bool {
-        do {
-            _ = try await status()
-            return true
-        } catch {
-            return false
-        }
-    }
-
     // MARK: - simctl 기반 API
 
     /// 시뮬레이터 UDID 가져오기 (내부 헬퍼)
@@ -160,8 +135,4 @@ public final class IOSControlClient: AgentClient, @unchecked Sendable {
         _ = try await post("pinch", body: request)
     }
 
-    /// 핀치 제스처 (좌표 직접 지정)
-    public func pinch(x: Double, y: Double, scale: Double, velocity: Double = 1.0) async throws {
-        try await pinch(PinchRequest(x: x, y: y, scale: scale, velocity: velocity))
-    }
 }

@@ -9,9 +9,6 @@ actor DeviceAgentRunner {
     /// 실행 중인 xcodebuild 프로세스
     private var runningProcess: Process?
 
-    /// 프로젝트 루트 디렉토리
-    private let rootDir: URL
-
     /// 빌드 디렉토리 (xctestrun 파일 위치)
     private let derivedDataPath: String
 
@@ -28,7 +25,6 @@ actor DeviceAgentRunner {
         let executablePath = URL(fileURLWithPath: CommandLine.arguments[0]).resolvingSymlinksInPath()
         let executableDir = executablePath.deletingLastPathComponent()
 
-        self.rootDir = executableDir
         self.derivedDataPath = executableDir.appendingPathComponent(".build/DeviceAgent").path
         self.xcodeProjectPath = executableDir.appendingPathComponent("AutomationServer/AutomationServer.xcodeproj").path
     }

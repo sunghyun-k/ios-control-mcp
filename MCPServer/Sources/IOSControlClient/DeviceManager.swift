@@ -7,7 +7,7 @@ public actor DeviceManager {
     public static let shared = DeviceManager()
 
     /// 에이전트 포트 번호
-    public static let agentPort: UInt16 = 22087
+    private static let agentPort: UInt16 = 22087
 
     private let simctlRunner = SimctlRunner.shared
     private let deviceCtlRunner = DeviceCtlRunner.shared
@@ -19,7 +19,7 @@ public actor DeviceManager {
     // MARK: - Device Listing
 
     /// 모든 연결된 기기 목록 (시뮬레이터 + 실기기)
-    public func listAllDevices() async throws -> [DeviceInfo] {
+    private func listAllDevices() async throws -> [DeviceInfo] {
         var devices: [DeviceInfo] = []
 
         // 시뮬레이터 목록
@@ -33,13 +33,8 @@ public actor DeviceManager {
         return devices
     }
 
-    /// 시뮬레이터만 조회
-    public func listSimulators() throws -> [DeviceInfo] {
-        try simctlRunner.listDevices()
-    }
-
     /// 실기기만 조회 (devicectl 사용)
-    public func listPhysicalDevices() throws -> [DeviceInfo] {
+    private func listPhysicalDevices() throws -> [DeviceInfo] {
         let deviceCtlDevices = try deviceCtlRunner.listDevices()
 
         return deviceCtlDevices.map { info in
@@ -67,11 +62,6 @@ public actor DeviceManager {
         currentDeviceId = udid
     }
 
-    /// 현재 선택된 기기 ID
-    public func getCurrentDeviceId() -> String? {
-        currentDeviceId
-    }
-
     /// 기기 선택 해제 (자동 선택 모드로 전환)
     public func clearSelection() {
         currentDeviceId = nil
@@ -86,7 +76,7 @@ public actor DeviceManager {
     }
 
     /// 자동 기기 선택 (우선순위: 부팅된 시뮬레이터 > 연결된 실기기)
-    public func autoSelectDevice() async throws -> DeviceInfo {
+    private func autoSelectDevice() async throws -> DeviceInfo {
         let allDevices = try await listAllDevices()
 
         // 1. 부팅된 시뮬레이터 찾기
@@ -112,23 +102,8 @@ public actor DeviceManager {
 
     // MARK: - Device Connection
 
-    /// 현재 선택된 기기에 연결할 URL 반환 (시뮬레이터용)
-    public func getAgentURL() async throws -> URL {
-        guard let device = try await getCurrentDevice() else {
-            throw DeviceManagerError.noDeviceSelected
-        }
-
-        switch device.type {
-        case .simulator:
-            return URL(string: "http://127.0.0.1:\(Self.agentPort)")!
-
-        case .physical:
-            throw DeviceManagerError.physicalDeviceNotYetSupported
-        }
-    }
-
     /// 실기기용 USB HTTP 클라이언트 생성
-    public func getUSBHTTPClient(udid: String) throws -> USBHTTPClient {
+    private func getUSBHTTPClient(udid: String) throws -> USBHTTPClient {
         // devicectl로 기기 존재 여부 확인
         guard try deviceCtlRunner.findDevice(udid: udid) != nil else {
             throw DeviceManagerError.deviceNotFound(udid)
@@ -139,7 +114,7 @@ public actor DeviceManager {
     }
 
     /// 현재 선택된 기기에 맞는 AgentClient 반환
-    public func getAgentClient() async throws -> any AgentClient {
+    private func getAgentClient() async throws -> any AgentClient {
         guard let device = try await getCurrentDevice() else {
             throw DeviceManagerError.noDeviceSelected
         }
@@ -160,23 +135,6 @@ public actor DeviceManager {
             _ = try await autoSelectDevice()
         }
         return try await getAgentClient()
-    }
-
-    // MARK: - Command Runners
-
-    /// 현재 선택된 기기의 명령 러너 반환
-    public func getCommandRunner() async throws -> any DeviceCommandRunner {
-        guard let device = try await getCurrentDevice() else {
-            throw DeviceManagerError.noDeviceSelected
-        }
-
-        switch device.type {
-        case .simulator:
-            return simctlRunner
-
-        case .physical:
-            throw DeviceManagerError.physicalDeviceNotYetSupported
-        }
     }
 }
 
