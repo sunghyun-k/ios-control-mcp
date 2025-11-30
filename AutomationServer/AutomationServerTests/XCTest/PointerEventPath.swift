@@ -35,12 +35,4 @@ struct PointerEventPath {
         let method = unsafeBitCast(imp, to: Method.self)
         method(path, selector, point, offset)
     }
-
-    mutating func set(modifiers: KeyModifierFlags = []) {
-        let selector = NSSelectorFromString("setModifiers:mergeWithCurrentModifierFlags:atOffset:")
-        let imp = path.method(for: selector)
-        typealias Method = @convention(c) (NSObject, Selector, UInt64, Bool, TimeInterval) -> ()
-        let method = unsafeBitCast(imp, to: Method.self)
-        method(path, selector, modifiers.rawValue, false, offset)
-    }
 }

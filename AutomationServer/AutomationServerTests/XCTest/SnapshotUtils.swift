@@ -46,7 +46,7 @@ enum SnapshotUtils {
     }
 
     /// Element type 숫자를 문자열로 변환
-    static func elementTypeName(_ type: Int) -> String {
+    private static func elementTypeName(_ type: Int) -> String {
         let names: [Int: String] = [
             0: "Any", 1: "Other", 2: "Application", 3: "Group",
             4: "Window", 5: "Sheet", 6: "Drawer", 7: "Alert",

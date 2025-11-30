@@ -6,11 +6,11 @@ final class EventRecord: NSObject {
     let eventRecord: NSObject
 
     enum Style: String {
-        case singeFinger = "Single-Finger Touch Action"
+        case singleFinger = "Single-Finger Touch Action"
         case multiFinger = "Multi-Finger Touch Action"
     }
 
-    init(orientation: UIInterfaceOrientation, style: Style = .singeFinger) {
+    init(orientation: UIInterfaceOrientation, style: Style = .singleFinger) {
         let alloced = ObjCBridge.allocInstance("XCSynthesizedEventRecord")!
         eventRecord = alloced
             .perform(
@@ -65,7 +65,7 @@ final class EventRecord: NSObject {
         return add(path1).add(path2)
     }
 
-    func add(_ path: PointerEventPath) -> Self {
+    private func add(_ path: PointerEventPath) -> Self {
         let selector = NSSelectorFromString("addPointerEventPath:")
         let imp = eventRecord.method(for: selector)
         typealias Method = @convention(c) (NSObject, Selector, NSObject) -> ()
