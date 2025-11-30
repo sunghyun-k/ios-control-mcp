@@ -64,6 +64,12 @@ Simulators work out of the box without additional setup.
 claude mcp add ios-control -- npx -y ios-control-mcp
 ```
 
+For physical devices, add the Team ID environment variable:
+
+```bash
+claude mcp add ios-control -e IOS_CONTROL_TEAM_ID=YOUR_TEAM_ID -- npx -y ios-control-mcp
+```
+
 </details>
 
 <details>

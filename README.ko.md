@@ -64,6 +64,12 @@ iOS 시뮬레이터 및 실제 iOS 기기를 자동화하기 위한 MCP(Model Co
 claude mcp add ios-control -- npx -y ios-control-mcp
 ```
 
+실기기 사용 시, Team ID 환경변수를 추가합니다:
+
+```bash
+claude mcp add ios-control -e IOS_CONTROL_TEAM_ID=YOUR_TEAM_ID -- npx -y ios-control-mcp
+```
+
 </details>
 
 <details>
