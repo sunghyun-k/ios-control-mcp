@@ -22,22 +22,32 @@ public final class USBHTTPClient: AgentClient, @unchecked Sendable {
         let client = USBMuxClient()
         let events = try await client.startListening()
 
-        // 기기 이벤트 수신 대기 (최대 500ms)
-        let deadline = Date().addingTimeInterval(0.5)
-        for await event in events {
-            if case .attached(let info) = event {
-                if info.serialNumber == udid {
-                    cachedDeviceID = info.deviceID
-                    await client.stopListening()
-                    return info.deviceID
+        // 타임아웃과 함께 기기 검색 (최대 2초)
+        let searchTask = Task<Int?, Never> {
+            for await event in events {
+                if case .attached(let info) = event {
+                    if info.serialNumber == udid {
+                        return info.deviceID
+                    }
                 }
             }
-            if Date() > deadline {
-                break
-            }
+            return nil
         }
 
+        let timeoutTask = Task {
+            try await Task.sleep(nanoseconds: 2_000_000_000)  // 2초
+            searchTask.cancel()
+        }
+
+        let result = await searchTask.value
+        timeoutTask.cancel()
         await client.stopListening()
+
+        if let deviceID = result {
+            cachedDeviceID = deviceID
+            return deviceID
+        }
+
         throw USBHTTPError.deviceNotFound(udid)
     }
 
@@ -269,7 +279,7 @@ public enum USBHTTPError: Error, LocalizedError {
         case .httpError(let code):
             return "HTTP error: \(code)"
         case .deviceNotFound(let udid):
-            return "Device not found via USB: \(udid)"
+            return "Device not connected via USB: \(udid). Please connect the device with a USB cable."
         }
     }
 }
