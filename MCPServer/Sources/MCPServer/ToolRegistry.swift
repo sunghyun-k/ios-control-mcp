@@ -32,6 +32,16 @@ enum ToolRegistry {
 
     /// 도구 이름으로 핸들러 조회 및 실행
     static func handle(name: String, arguments: [String: Value]?) async throws -> [Tool.Content] {
+        // 기기 관리 도구 (Agent 없이 동작)
+        switch name {
+        case ListDevicesTool.name:
+            return try await ListDevicesTool.handle(arguments: arguments, client: NoOpAgentClient())
+        case SelectDeviceTool.name:
+            return try await SelectDeviceTool.handle(arguments: arguments, client: NoOpAgentClient())
+        default:
+            break
+        }
+
         // 선택된 기기(또는 자동 선택)에 맞는 클라이언트 획득
         let client = try await DeviceManager.shared.getOrAutoSelectAgentClient()
 
@@ -39,11 +49,6 @@ enum ToolRegistry {
         try await ensureServerRunning(client: client)
 
         switch name {
-        // 기기 관리 (Agent 없이 동작)
-        case ListDevicesTool.name:
-            return try await ListDevicesTool.handle(arguments: arguments, client: client)
-        case SelectDeviceTool.name:
-            return try await SelectDeviceTool.handle(arguments: arguments, client: client)
         // UI 조작
         case TapTool.name:
             return try await TapTool.handle(arguments: arguments, client: client)

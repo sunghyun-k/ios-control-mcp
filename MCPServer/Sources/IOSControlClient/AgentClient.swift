@@ -90,3 +90,50 @@ public enum AgentClientError: Error, LocalizedError {
         }
     }
 }
+
+// MARK: - NoOp Client
+
+/// Agent 연결 없이 동작하는 도구용 더미 클라이언트
+public struct NoOpAgentClient: AgentClient {
+    public init() {}
+
+    public func status() async throws -> StatusResponse {
+        throw AgentClientError.notSupportedOnPhysicalDevice("status")
+    }
+
+    public func tree(appBundleId: String?) async throws -> TreeResponse {
+        throw AgentClientError.notSupportedOnPhysicalDevice("tree")
+    }
+
+    public func foregroundApp() async throws -> ForegroundAppResponse {
+        throw AgentClientError.notSupportedOnPhysicalDevice("foregroundApp")
+    }
+
+    public func screenshot(format: String) async throws -> Data {
+        throw AgentClientError.notSupportedOnPhysicalDevice("screenshot")
+    }
+
+    public func tap(_ request: TapRequest) async throws {
+        throw AgentClientError.notSupportedOnPhysicalDevice("tap")
+    }
+
+    public func swipe(_ request: SwipeRequest) async throws {
+        throw AgentClientError.notSupportedOnPhysicalDevice("swipe")
+    }
+
+    public func pinch(_ request: PinchRequest) async throws {
+        throw AgentClientError.notSupportedOnPhysicalDevice("pinch")
+    }
+
+    public func inputText(_ request: InputTextRequest) async throws {
+        throw AgentClientError.notSupportedOnPhysicalDevice("inputText")
+    }
+
+    public func launchApp(bundleId: String) async throws {
+        throw AgentClientError.notSupportedOnPhysicalDevice("launchApp")
+    }
+
+    public func goHome() async throws {
+        throw AgentClientError.notSupportedOnPhysicalDevice("goHome")
+    }
+}
