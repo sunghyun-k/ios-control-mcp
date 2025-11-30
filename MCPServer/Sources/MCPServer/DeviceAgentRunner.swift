@@ -59,6 +59,11 @@ actor DeviceAgentRunner {
 
     /// 실기기에서 Agent 시작
     func start(udid: String, timeout: TimeInterval = 60) async throws {
+        // USB 연결 여부 먼저 확인 (빠른 실패)
+        guard await checkUSBConnection(udid: udid) else {
+            throw DeviceAgentError.usbNotConnected(udid)
+        }
+
         // 이미 실행 중인지 확인
         if await isRunning(udid: udid) {
             return
@@ -196,10 +201,36 @@ actor DeviceAgentRunner {
 
     /// 서버가 실행 중인지 확인
     func isRunning(udid: String) async -> Bool {
+        let client = USBHTTPClient(udid: udid)
+        return await client.isServerRunning()
+    }
+
+    /// USB 연결 여부 확인 (usbmuxd를 통해)
+    private func checkUSBConnection(udid: String) async -> Bool {
+        let client = USBMuxClient()
         do {
-            let client = try await DeviceManager.shared.getUSBHTTPClient(udid: udid)
-            _ = try await client.status()
-            return true
+            let events = try await client.startListening()
+
+            let searchTask = Task<Bool, Never> {
+                for await event in events {
+                    if case .attached(let info) = event {
+                        if info.serialNumber == udid {
+                            return true
+                        }
+                    }
+                }
+                return false
+            }
+
+            let timeoutTask = Task {
+                try await Task.sleep(nanoseconds: 500_000_000)  // 0.5초
+                searchTask.cancel()
+            }
+
+            let result = await searchTask.value
+            timeoutTask.cancel()
+            await client.stopListening()
+            return result
         } catch {
             return false
         }
@@ -234,6 +265,7 @@ actor DeviceAgentRunner {
 // MARK: - Errors
 
 enum DeviceAgentError: Error, LocalizedError {
+    case usbNotConnected(String)
     case teamIdRequired
     case xcodeProjectNotFound(String)
     case buildFailed(String)
@@ -243,6 +275,18 @@ enum DeviceAgentError: Error, LocalizedError {
 
     var errorDescription: String? {
         switch self {
+        case .usbNotConnected(let udid):
+            return """
+                기기가 USB로 연결되어 있지 않습니다: \(udid)
+
+                실기기를 제어하려면 USB 케이블로 Mac에 연결해야 합니다.
+                Wi-Fi 연결만으로는 Agent와 통신할 수 없습니다.
+
+                해결 방법:
+                  1. USB 케이블로 기기를 Mac에 연결
+                  2. "이 컴퓨터를 신뢰하시겠습니까?" 팝업에서 "신뢰" 선택
+                  3. list_devices로 연결 상태 확인
+                """
         case .teamIdRequired:
             return """
                 실기기 사용에는 Apple Developer Team ID가 필요합니다.
