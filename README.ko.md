@@ -1,8 +1,34 @@
 # ios-control-mcp
 
+[![npm version](https://img.shields.io/npm/v/ios-control-mcp)](https://www.npmjs.com/package/ios-control-mcp)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+![macOS 13+](https://img.shields.io/badge/macOS-13%2B-blue)
+
 [English](README.md)
 
 iOS 시뮬레이터 및 실제 iOS 기기를 자동화하기 위한 MCP(Model Context Protocol) 서버입니다. Claude와 같은 LLM이 iOS 디바이스와 상호작용할 수 있게 해줍니다.
+
+https://github.com/user-attachments/assets/4284357b-6b6e-4e6a-a81c-e5976052be51
+
+## 빠른 시작
+
+30초 안에 시작하기:
+
+1. MCP 클라이언트 설정에 추가:
+   ```json
+   {
+     "mcpServers": {
+       "ios-control": {
+         "command": "npx",
+         "args": ["-y", "ios-control-mcp"]
+       }
+     }
+   }
+   ```
+
+2. Claude에게 요청: *"iOS 시뮬레이터 스크린샷 찍어줘"*
+
+끝! 이제 Claude가 iOS 시뮬레이터를 제어할 수 있습니다. 자세한 설정은 [설치](#설치) 섹션을 참고하세요.
 
 ## 주요 기능
 
@@ -148,6 +174,26 @@ security find-identity -v -p codesigning
 1. **개발자 모드 활성화**: 설정 → 개인정보 보호 및 보안 → 개발자 모드 → 활성화 (iOS 16+)
 2. **USB 연결**: Mac에 기기를 USB로 연결하고 "이 컴퓨터를 신뢰하시겠습니까?" 팝업에서 신뢰 선택
 3. **첫 실행 시**: 기기에 앱 설치 후 "신뢰하지 않는 개발자" 경고가 뜨면, 설정 → 일반 → VPN 및 기기 관리에서 개발자 앱을 신뢰하도록 설정
+
+## 사용 예시
+
+Claude에게 요청할 수 있는 것들:
+
+**스크린샷 & UI 검사:**
+> "현재 화면 스크린샷 찍어줘"
+> "현재 화면의 UI 트리 보여줘"
+
+**앱 네비게이션:**
+> "설정 앱 열고 일반 > 정보로 이동해줘"
+> "Safari 실행해서 apple.com으로 가줘"
+
+**UI 조작:**
+> "'로그인' 버튼 눌러줘"
+> "이메일 입력란에 'hello@example.com' 입력해줘"
+> "'개인정보' 옵션 찾을 때까지 아래로 스크롤해줘"
+
+**복합 플로우:**
+> "온보딩 플로우 테스트해줘: 인트로 스킵하고, 테스트 데이터로 계정 만들고, 홈 화면 나오는지 확인해줘"
 
 ## 트러블슈팅
 

@@ -1,8 +1,34 @@
 # ios-control-mcp
 
+[![npm version](https://img.shields.io/npm/v/ios-control-mcp)](https://www.npmjs.com/package/ios-control-mcp)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+![macOS 13+](https://img.shields.io/badge/macOS-13%2B-blue)
+
 [한국어](README.ko.md)
 
 An MCP (Model Context Protocol) server for automating iOS simulators and real iOS devices. Enables LLMs like Claude to interact with iOS devices.
+
+https://github.com/user-attachments/assets/4284357b-6b6e-4e6a-a81c-e5976052be51
+
+## Quick Start
+
+Get started in 30 seconds:
+
+1. Add to your MCP client config:
+   ```json
+   {
+     "mcpServers": {
+       "ios-control": {
+         "command": "npx",
+         "args": ["-y", "ios-control-mcp"]
+       }
+     }
+   }
+   ```
+
+2. Ask Claude: *"Take a screenshot of the iOS simulator"*
+
+That's it! Claude can now control iOS simulators. See [Installation](#installation) for detailed setup instructions.
 
 ## Features
 
@@ -148,6 +174,26 @@ The 10-character string in parentheses (e.g., `XXXXXXXXXX`) is your Team ID.
 1. **Enable Developer Mode**: Settings → Privacy & Security → Developer Mode → Enable (iOS 16+)
 2. **Connect via USB**: Connect your device to Mac via USB and tap "Trust" when prompted
 3. **First run**: After the app is installed, if you see "Untrusted Developer" warning, go to Settings → General → VPN & Device Management and trust the developer app
+
+## Usage Examples
+
+Here are some things you can ask Claude:
+
+**Screenshots & UI inspection:**
+> "Take a screenshot of the current screen"
+> "Show me the UI tree of the current screen"
+
+**App navigation:**
+> "Open the Settings app and go to General > About"
+> "Launch Safari and navigate to apple.com"
+
+**UI interactions:**
+> "Tap the 'Sign In' button"
+> "Enter 'hello@example.com' in the email field"
+> "Scroll down to find the 'Privacy' option"
+
+**Complex flows:**
+> "Test the onboarding flow: skip the intro, create an account with test data, and verify the home screen"
 
 ## Troubleshooting
 
