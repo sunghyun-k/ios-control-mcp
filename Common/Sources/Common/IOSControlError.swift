@@ -2,133 +2,133 @@ import Foundation
 
 /// IOSControl 통합 오류 타입
 public enum IOSControlError: Error, LocalizedError {
-    // MARK: - 서버 관련
+    // MARK: - Server
     case serverNotRunning
     case serverTimeout(TimeInterval)
 
-    // MARK: - HTTP 관련
+    // MARK: - HTTP
     case httpError(Int)
     case invalidResponse
 
-    // MARK: - 요소 관련
+    // MARK: - Element
     case elementNotFound(String)
 
-    // MARK: - 시뮬레이터 관련
+    // MARK: - Simulator
     case simulatorNotFound
     case simulatorBootFailed(udid: String, exitCode: Int)
     case simulatorBootTimeout(udid: String, timeout: TimeInterval)
 
-    // MARK: - simctl 관련
+    // MARK: - simctl
     case simctlError(command: String, exitCode: Int32)
     case simctlAppNotFound
     case simctlInstallFailed(exitCode: Int)
     case simctlLaunchFailed(exitCode: Int)
 
-    // MARK: - 인자 관련
+    // MARK: - Arguments
     case missingArgument(String)
     case invalidArgumentType(key: String, expected: String)
 
-    // MARK: - 도구 관련
+    // MARK: - Tools
     case unknownTool(String)
 
     public var errorDescription: String? {
         switch self {
-        // 서버 관련
+        // Server
         case .serverNotRunning:
             return """
-                AutomationServer가 실행 중이지 않습니다.
+                AutomationServer is not running.
 
-                해결 방법:
-                  1. 기기/시뮬레이터가 켜져 있는지 확인
-                  2. 다시 시도하면 자동으로 Agent가 시작됩니다
-                  3. 문제가 지속되면 기기를 재부팅하세요
+                Solutions:
+                  1. Check if the device/simulator is powered on
+                  2. Retry - the Agent will start automatically
+                  3. If the problem persists, reboot the device
                 """
         case .serverTimeout(let seconds):
             return """
-                AutomationServer가 \(Int(seconds))초 내에 시작되지 않았습니다.
+                AutomationServer did not start within \(Int(seconds)) seconds.
 
-                해결 방법:
-                  1. 기기/시뮬레이터 화면이 잠겨있지 않은지 확인
-                  2. 실기기의 경우 "신뢰하지 않는 개발자" 경고가 있는지 확인
-                     → 설정 → 일반 → VPN 및 기기 관리에서 앱 신뢰
-                  3. 기기를 재부팅 후 재시도
+                Solutions:
+                  1. Check if the device/simulator screen is unlocked
+                  2. For physical devices, check for "Untrusted Developer" warning
+                     → Settings → General → VPN & Device Management → Trust the app
+                  3. Reboot the device and retry
                 """
 
-        // HTTP 관련
+        // HTTP
         case .httpError(let code):
-            return "HTTP 오류: \(code)"
+            return "HTTP error: \(code)"
         case .invalidResponse:
-            return "잘못된 응답"
+            return "Invalid response"
 
-        // 요소 관련
+        // Element
         case .elementNotFound(let label):
-            return "요소를 찾을 수 없습니다: \(label)"
+            return "Element not found: \(label)"
 
-        // 시뮬레이터 관련
+        // Simulator
         case .simulatorNotFound:
             return """
-                사용 가능한 iPhone 시뮬레이터가 없습니다.
+                No available iPhone simulator found.
 
-                해결 방법:
-                  1. Xcode가 설치되어 있는지 확인
-                  2. iOS 시뮬레이터 런타임 다운로드: xcodebuild -downloadPlatform iOS
-                  3. Xcode → Settings → Platforms에서 iOS 시뮬레이터 확인
+                Solutions:
+                  1. Check if Xcode is installed
+                  2. Download iOS simulator runtime: xcodebuild -downloadPlatform iOS
+                  3. Check Xcode → Settings → Platforms for iOS simulator
                 """
         case .simulatorBootFailed(let udid, let code):
             return """
-                시뮬레이터 부팅 실패: \(udid), 종료 코드: \(code)
+                Simulator boot failed: \(udid), exit code: \(code)
 
-                해결 방법:
-                  1. Xcode → Settings → Platforms에서 iOS 런타임 설치 확인
-                  2. 시뮬레이터 앱에서 해당 기기 삭제 후 재생성
-                  3. xcrun simctl erase \(udid) 로 시뮬레이터 초기화
+                Solutions:
+                  1. Check iOS runtime installation in Xcode → Settings → Platforms
+                  2. Delete and recreate the device in Simulator app
+                  3. Reset simulator with: xcrun simctl erase \(udid)
                 """
         case .simulatorBootTimeout(let udid, let timeout):
             return """
-                시뮬레이터 \(udid)가 \(Int(timeout))초 내에 부팅되지 않았습니다.
+                Simulator \(udid) did not boot within \(Int(timeout)) seconds.
 
-                해결 방법:
-                  1. 시뮬레이터 앱을 직접 열어 부팅 상태 확인
-                  2. Mac 재시작 후 재시도
-                  3. 다른 시뮬레이터로 시도
+                Solutions:
+                  1. Open Simulator app directly to check boot status
+                  2. Restart Mac and retry
+                  3. Try a different simulator
                 """
 
-        // simctl 관련
+        // simctl
         case .simctlError(let command, let code):
-            return "simctl \(command) 실패, 종료 코드: \(code)"
+            return "simctl \(command) failed, exit code: \(code)"
         case .simctlAppNotFound:
             return """
-                AutomationServer 앱을 찾을 수 없습니다.
+                AutomationServer app not found.
 
-                처음 실행 시 자동으로 빌드됩니다.
-                Xcode가 설치되어 있는지 확인하세요.
+                It will be built automatically on first run.
+                Check if Xcode is installed.
                 """
         case .simctlInstallFailed(let code):
             return """
-                앱 설치 실패, 종료 코드: \(code)
+                App installation failed, exit code: \(code)
 
-                해결 방법:
-                  1. 시뮬레이터가 부팅되어 있는지 확인
-                  2. 시뮬레이터를 재부팅 후 재시도
+                Solutions:
+                  1. Check if the simulator is booted
+                  2. Reboot the simulator and retry
                 """
         case .simctlLaunchFailed(let code):
             return """
-                앱 실행 실패, 종료 코드: \(code)
+                App launch failed, exit code: \(code)
 
-                해결 방법:
-                  1. 시뮬레이터에서 앱이 설치되어 있는지 확인
-                  2. 시뮬레이터를 재부팅 후 재시도
+                Solutions:
+                  1. Check if the app is installed on the simulator
+                  2. Reboot the simulator and retry
                 """
 
-        // 인자 관련
+        // Arguments
         case .missingArgument(let key):
-            return "필수 인자 '\(key)'가 누락되었습니다"
+            return "Missing required argument: '\(key)'"
         case .invalidArgumentType(let key, let expected):
-            return "인자 '\(key)'의 타입이 잘못되었습니다. 예상: \(expected)"
+            return "Invalid type for argument '\(key)'. Expected: \(expected)"
 
-        // 도구 관련
+        // Tools
         case .unknownTool(let name):
-            return "알 수 없는 도구: \(name)"
+            return "Unknown tool: \(name)"
         }
     }
 }
