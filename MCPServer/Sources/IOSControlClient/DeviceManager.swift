@@ -9,18 +9,10 @@ public actor DeviceManager {
     /// 에이전트 포트 번호
     public static let agentPort: UInt16 = 22087
 
-    /// 실기기 포트 범위 (LookinServer 방식)
-    public static let physicalDevicePortStart: UInt16 = 47175
-    public static let physicalDevicePortEnd: UInt16 = 47179
-
     private let simctlRunner = SimctlRunner.shared
     private let deviceCtlRunner = DeviceCtlRunner.shared
-    private let usbMuxClient = USBMuxClient()
 
     private var currentDeviceId: String?
-    private var isListeningUSB = false
-    private var physicalDevices: [String: USBMuxDeviceInfo] = [:]  // UDID -> Info
-    private var deviceCtlCache: [String: DeviceCtlDeviceInfo] = [:]  // UDID -> DeviceCtl Info
 
     private init() {}
 
@@ -34,8 +26,8 @@ public actor DeviceManager {
         let simulators = try simctlRunner.listDevices()
         devices.append(contentsOf: simulators)
 
-        // 실기기 목록 (USB 리스닝 자동 시작)
-        let physicalDeviceList = try await listPhysicalDevices()
+        // 실기기 목록 (devicectl)
+        let physicalDeviceList = try listPhysicalDevices()
         devices.append(contentsOf: physicalDeviceList)
 
         return devices
@@ -46,57 +38,19 @@ public actor DeviceManager {
         try simctlRunner.listDevices()
     }
 
-    /// 실기기만 조회
-    public func listPhysicalDevices() async throws -> [DeviceInfo] {
-        // devicectl로 실기기 정보 조회 및 캐시 갱신
-        try await refreshDeviceCtlCache()
+    /// 실기기만 조회 (devicectl 사용)
+    public func listPhysicalDevices() throws -> [DeviceInfo] {
+        let deviceCtlDevices = try deviceCtlRunner.listDevices()
 
-        // USB 리스닝이 시작되지 않았으면 시작하고 기기 이벤트 수신 대기
-        if !isListeningUSB {
-            try await startUSBListening()
-            // 기기 연결 이벤트 수신 대기 (최대 500ms)
-            try await Task.sleep(for: .milliseconds(500))
-        }
-
-        // 현재 캐시된 기기 목록에 devicectl 정보 병합
-        return physicalDevices.values.map { usbInfo in
-            let udid = usbInfo.serialNumber
-
-            // devicectl 캐시에서 추가 정보 조회
-            if let deviceCtlInfo = deviceCtlCache[udid] {
-                return DeviceInfo(
-                    id: udid,
-                    name: deviceCtlInfo.name,
-                    type: .physical,
-                    isConnected: deviceCtlInfo.isConnected,
-                    osVersion: deviceCtlInfo.osVersion,
-                    model: deviceCtlInfo.model
-                )
-            } else {
-                // devicectl 정보가 없는 경우 기본값
-                return DeviceInfo(
-                    id: udid,
-                    name: "iOS Device",
-                    type: .physical,
-                    isConnected: true,
-                    osVersion: nil,
-                    model: nil
-                )
-            }
-        }
-    }
-
-    /// devicectl 캐시 갱신
-    private func refreshDeviceCtlCache() async throws {
-        // devicectl은 동기 명령이므로 백그라운드에서 실행
-        let devices = try await Task.detached {
-            try DeviceCtlRunner.shared.listDevices()
-        }.value
-
-        // UDID 기반으로 캐시 갱신
-        deviceCtlCache.removeAll()
-        for device in devices {
-            deviceCtlCache[device.hardwareUdid] = device
+        return deviceCtlDevices.map { info in
+            DeviceInfo(
+                id: info.hardwareUdid,
+                name: info.name,
+                type: .physical,
+                isConnected: info.isConnected,
+                osVersion: info.osVersion,
+                model: info.model
+            )
         }
     }
 
@@ -156,46 +110,9 @@ public actor DeviceManager {
         throw DeviceManagerError.noDeviceAvailable
     }
 
-    // MARK: - USB Listening
-
-    /// USB 기기 연결 이벤트 수신 시작
-    public func startUSBListening() async throws {
-        guard !isListeningUSB else { return }
-
-        isListeningUSB = true
-        let events = try await usbMuxClient.startListening()
-
-        Task { [weak self] in
-            for await event in events {
-                await self?.handleUSBEvent(event)
-            }
-        }
-    }
-
-    /// USB 기기 연결 이벤트 수신 중지
-    public func stopUSBListening() async {
-        isListeningUSB = false
-        await usbMuxClient.stopListening()
-    }
-
-    private func handleUSBEvent(_ event: USBMuxDeviceEvent) {
-        switch event {
-        case .attached(let info):
-            physicalDevices[info.serialNumber] = info
-
-        case .detached(let info):
-            physicalDevices.removeValue(forKey: info.serialNumber)
-
-            // 현재 선택된 기기가 분리되면 선택 해제
-            if currentDeviceId == info.serialNumber {
-                currentDeviceId = nil
-            }
-        }
-    }
-
     // MARK: - Device Connection
 
-    /// 현재 선택된 기기에 연결할 URL 반환
+    /// 현재 선택된 기기에 연결할 URL 반환 (시뮬레이터용)
     public func getAgentURL() async throws -> URL {
         guard let device = try await getCurrentDevice() else {
             throw DeviceManagerError.noDeviceSelected
@@ -203,35 +120,22 @@ public actor DeviceManager {
 
         switch device.type {
         case .simulator:
-            // 시뮬레이터는 직접 로컬호스트 연결
             return URL(string: "http://127.0.0.1:\(Self.agentPort)")!
 
         case .physical:
-            // 실기기는 usbmuxd를 통한 연결
-            // TODO: USB 포트 포워딩 구현
             throw DeviceManagerError.physicalDeviceNotYetSupported
         }
     }
 
-    /// 실기기의 Agent 포트에 연결된 파일 디스크립터 반환
-    public func connectToPhysicalDevice(udid: String) throws -> Int32 {
-        guard let info = physicalDevices[udid] else {
-            throw DeviceManagerError.deviceNotFound(udid)
-        }
-
-        return try usbMuxClient.connectToDevice(
-            deviceID: info.deviceID,
-            port: Self.agentPort
-        )
-    }
-
     /// 실기기용 USB HTTP 클라이언트 생성
     public func getUSBHTTPClient(udid: String) throws -> USBHTTPClient {
-        guard let info = physicalDevices[udid] else {
+        // devicectl로 기기 존재 여부 확인
+        guard try deviceCtlRunner.findDevice(udid: udid) != nil else {
             throw DeviceManagerError.deviceNotFound(udid)
         }
 
-        return USBHTTPClient(deviceID: info.deviceID, port: Self.agentPort)
+        // USBHTTPClient가 내부적으로 usbmuxd를 통해 연결
+        return USBHTTPClient(udid: udid, port: Self.agentPort)
     }
 
     /// 현재 선택된 기기에 맞는 AgentClient 반환
@@ -258,11 +162,6 @@ public actor DeviceManager {
         return try await getAgentClient()
     }
 
-    /// 캐시된 실기기 정보 조회 (디버깅용)
-    public func getPhysicalDeviceInfo(udid: String) -> USBMuxDeviceInfo? {
-        physicalDevices[udid]
-    }
-
     // MARK: - Command Runners
 
     /// 현재 선택된 기기의 명령 러너 반환
@@ -276,7 +175,6 @@ public actor DeviceManager {
             return simctlRunner
 
         case .physical:
-            // TODO: 실기기용 CommandRunner 구현
             throw DeviceManagerError.physicalDeviceNotYetSupported
         }
     }

@@ -4,12 +4,41 @@ import Common
 /// USB를 통한 HTTP 클라이언트 (실기기용)
 /// usbmuxd 연결을 사용하여 실기기의 Agent와 HTTP 통신
 public final class USBHTTPClient: AgentClient, @unchecked Sendable {
-    private let deviceID: Int
+    private let udid: String
     private let port: UInt16
+    private var cachedDeviceID: Int?
 
-    public init(deviceID: Int, port: UInt16 = 22087) {
-        self.deviceID = deviceID
+    public init(udid: String, port: UInt16 = 22087) {
+        self.udid = udid
         self.port = port
+    }
+
+    /// usbmuxd에서 기기 ID 조회 (UDID -> DeviceID 매핑)
+    private func getDeviceID() async throws -> Int {
+        if let cached = cachedDeviceID {
+            return cached
+        }
+
+        let client = USBMuxClient()
+        let events = try await client.startListening()
+
+        // 기기 이벤트 수신 대기 (최대 500ms)
+        let deadline = Date().addingTimeInterval(0.5)
+        for await event in events {
+            if case .attached(let info) = event {
+                if info.serialNumber == udid {
+                    cachedDeviceID = info.deviceID
+                    await client.stopListening()
+                    return info.deviceID
+                }
+            }
+            if Date() > deadline {
+                break
+            }
+        }
+
+        await client.stopListening()
+        throw USBHTTPError.deviceNotFound(udid)
     }
 
     // MARK: - HTTP Methods
@@ -27,6 +56,7 @@ public final class USBHTTPClient: AgentClient, @unchecked Sendable {
 
     private func request(_ method: String, _ endpoint: String, body: Data?) async throws -> Data {
         // USB 연결
+        let deviceID = try await getDeviceID()
         let usbClient = USBMuxClient()
         let fd = try usbClient.connectToDevice(deviceID: deviceID, port: port)
 
@@ -226,6 +256,7 @@ public enum USBHTTPError: Error, LocalizedError {
     case receiveFailed(Int32)
     case invalidResponse
     case httpError(Int)
+    case deviceNotFound(String)
 
     public var errorDescription: String? {
         switch self {
@@ -237,6 +268,8 @@ public enum USBHTTPError: Error, LocalizedError {
             return "Invalid HTTP response"
         case .httpError(let code):
             return "HTTP error: \(code)"
+        case .deviceNotFound(let udid):
+            return "Device not found via USB: \(udid)"
         }
     }
 }

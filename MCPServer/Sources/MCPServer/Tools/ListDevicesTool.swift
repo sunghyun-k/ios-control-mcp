@@ -15,18 +15,20 @@ struct ListDevicesTool: MCPTool {
     typealias Arguments = EmptyArgs
 
     static func execute(args: Arguments, client: any AgentClient) async throws -> [Tool.Content] {
-        let physicalDevices = try await DeviceManager.shared.listPhysicalDevices()
+        let devices = try DeviceCtlRunner.shared.listDevices()
 
-        if physicalDevices.isEmpty {
+        if devices.isEmpty {
             return [.text("No physical devices connected.")]
         }
 
         var lines: [String] = ["## Connected Physical Devices"]
-        for device in physicalDevices {
-            lines.append("- \(device.name) (\(device.id))")
+        for device in devices {
+            lines.append("- \(device.name) (\(device.hardwareUdid))")
             if let os = device.osVersion {
-                lines.append("  iOS \(os)")
+                lines.append("  \(device.platform) \(os)")
             }
+            lines.append("  Model: \(device.model)")
+            lines.append("  Connection: \(device.transportType) (\(device.connectionState))")
         }
 
         return [.text(lines.joined(separator: "\n"))]
