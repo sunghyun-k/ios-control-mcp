@@ -6,12 +6,15 @@ import Common
 public enum TreeFormatter {
     /// 트리를 YAML 형식으로 포맷팅된 문자열로 변환
     public static func format(_ element: AXElement, showCoords: Bool = false) -> String {
+        // 화면 크기 (루트 요소의 frame 사용)
+        let screenBounds = ScreenBounds(width: element.frame.width, height: element.frame.height)
+
         // 키보드 Y 좌표 찾기 (키보드가 있으면 그 아래 영역 필터링)
         let keyboardTopY = findKeyboardTopY(element)
 
         // 먼저 라벨 등장 횟수를 계산 (키보드 영역 제외)
         var labelCounts: [String: Int] = [:]
-        countLabels(element, counts: &labelCounts, keyboardTopY: keyboardTopY)
+        countLabels(element, counts: &labelCounts, keyboardTopY: keyboardTopY, screenBounds: screenBounds)
 
         // 중복 라벨만 추적 (2회 이상 등장)
         let duplicateLabels = Set(labelCounts.filter { $0.value > 1 }.keys)
@@ -19,7 +22,19 @@ public enum TreeFormatter {
         // 현재 인덱스 추적용
         var labelIndices: [String: Int] = [:]
 
-        return formatElement(element, indent: 0, showCoords: showCoords, duplicateLabels: duplicateLabels, labelIndices: &labelIndices, keyboardTopY: keyboardTopY).joined(separator: "\n")
+        return formatElement(element, indent: 0, showCoords: showCoords, duplicateLabels: duplicateLabels, labelIndices: &labelIndices, keyboardTopY: keyboardTopY, screenBounds: screenBounds).joined(separator: "\n")
+    }
+
+    /// 화면 크기 정보
+    struct ScreenBounds {
+        let width: Double
+        let height: Double
+
+        /// 요소의 중심점이 화면 안에 있는지 확인
+        func containsCenter(of element: AXElement) -> Bool {
+            let center = element.frame.center
+            return center.x >= 0 && center.x <= width && center.y >= 0 && center.y <= height
+        }
     }
 
     /// 키보드의 상단 Y 좌표를 찾음
@@ -41,8 +56,8 @@ public enum TreeFormatter {
         return nil
     }
 
-    /// 트리 내 모든 라벨 등장 횟수 계산 (키보드 영역 제외)
-    private static func countLabels(_ element: AXElement, counts: inout [String: Int], keyboardTopY: Double?) {
+    /// 트리 내 모든 라벨 등장 횟수 계산 (키보드 영역, 화면 밖 요소 제외)
+    private static func countLabels(_ element: AXElement, counts: inout [String: Int], keyboardTopY: Double?, screenBounds: ScreenBounds) {
         // 키보드 관련 요소는 제외
         if isKeyboardElement(element) {
             return
@@ -53,6 +68,11 @@ public enum TreeFormatter {
             return
         }
 
+        // 화면 밖 요소는 제외
+        if !screenBounds.containsCenter(of: element) {
+            return
+        }
+
         let label = element.label
         if !label.isEmpty {
             counts[label, default: 0] += 1
@@ -60,7 +80,7 @@ public enum TreeFormatter {
 
         if let children = element.children {
             for child in children {
-                countLabels(child, counts: &counts, keyboardTopY: keyboardTopY)
+                countLabels(child, counts: &counts, keyboardTopY: keyboardTopY, screenBounds: screenBounds)
             }
         }
     }
@@ -100,14 +120,14 @@ private let hiddenPatterns: [String] = ["스크롤 막대", "scroll bar"]
 /// Switch/Toggle은 내부 자식을 출력하지 않음 (내부 구현 디테일)
 private let leafTypes: Set<String> = ["Switch", "Toggle"]
 
-private func formatElement(_ element: AXElement, indent: Int, showCoords: Bool, duplicateLabels: Set<String>, labelIndices: inout [String: Int], keyboardTopY: Double?) -> [String] {
+private func formatElement(_ element: AXElement, indent: Int, showCoords: Bool, duplicateLabels: Set<String>, labelIndices: inout [String: Int], keyboardTopY: Double?, screenBounds: TreeFormatter.ScreenBounds) -> [String] {
     // 숨길 요소 제외
-    if shouldHide(element, keyboardTopY: keyboardTopY) {
+    if shouldHide(element, keyboardTopY: keyboardTopY, screenBounds: screenBounds) {
         return []
     }
 
     // 단일 자식 체인 처리: 현재 요소가 무의미하고 자식이 1개면 체인으로 연결
-    if let chainResult = tryFormatChain(element, indent: indent, showCoords: showCoords, duplicateLabels: duplicateLabels, labelIndices: &labelIndices, keyboardTopY: keyboardTopY) {
+    if let chainResult = tryFormatChain(element, indent: indent, showCoords: showCoords, duplicateLabels: duplicateLabels, labelIndices: &labelIndices, keyboardTopY: keyboardTopY, screenBounds: screenBounds) {
         return chainResult
     }
 
@@ -118,7 +138,7 @@ private func formatElement(_ element: AXElement, indent: Int, showCoords: Bool, 
     let (mainLine, metadataLines) = formatSingleElement(element, showCoords: showCoords, duplicateLabels: duplicateLabels, labelIndices: &labelIndices)
 
     let children = element.children ?? []
-    let visibleChildren = children.filter { !shouldHide($0, keyboardTopY: keyboardTopY) }
+    let visibleChildren = children.filter { !shouldHide($0, keyboardTopY: keyboardTopY, screenBounds: screenBounds) }
     let hasChildren = !visibleChildren.isEmpty && !leafTypes.contains(element.type)
 
     // 자식이 있으면 콜론으로 끝남
@@ -139,37 +159,37 @@ private func formatElement(_ element: AXElement, indent: Int, showCoords: Bool, 
     }
 
     // 자식 요소들 출력 (Y축 그룹화 적용)
-    lines.append(contentsOf: formatChildrenWithRowGrouping(children, indent: indent + 1, showCoords: showCoords, duplicateLabels: duplicateLabels, labelIndices: &labelIndices, keyboardTopY: keyboardTopY))
+    lines.append(contentsOf: formatChildrenWithRowGrouping(children, indent: indent + 1, showCoords: showCoords, duplicateLabels: duplicateLabels, labelIndices: &labelIndices, keyboardTopY: keyboardTopY, screenBounds: screenBounds))
 
     return lines
 }
 
 /// 자식 요소들을 Y축 그룹화하여 출력
-private func formatChildrenWithRowGrouping(_ children: [AXElement], indent: Int, showCoords: Bool, duplicateLabels: Set<String>, labelIndices: inout [String: Int], keyboardTopY: Double?) -> [String] {
+private func formatChildrenWithRowGrouping(_ children: [AXElement], indent: Int, showCoords: Bool, duplicateLabels: Set<String>, labelIndices: inout [String: Int], keyboardTopY: Double?, screenBounds: TreeFormatter.ScreenBounds) -> [String] {
     var lines: [String] = []
     let prefix = String(repeating: "  ", count: indent)
 
     // 자식이 4개 미만이면 그룹화 없이 출력
-    let visibleChildren = children.filter { !shouldHide($0, keyboardTopY: keyboardTopY) }
+    let visibleChildren = children.filter { !shouldHide($0, keyboardTopY: keyboardTopY, screenBounds: screenBounds) }
     if visibleChildren.count < 4 {
         for child in children {
-            lines.append(contentsOf: formatElement(child, indent: indent, showCoords: showCoords, duplicateLabels: duplicateLabels, labelIndices: &labelIndices, keyboardTopY: keyboardTopY))
+            lines.append(contentsOf: formatElement(child, indent: indent, showCoords: showCoords, duplicateLabels: duplicateLabels, labelIndices: &labelIndices, keyboardTopY: keyboardTopY, screenBounds: screenBounds))
         }
         return lines
     }
 
     // Y축 기준으로 그룹화
-    let groups = groupChildrenByRow(children, keyboardTopY: keyboardTopY)
+    let groups = groupChildrenByRow(children, keyboardTopY: keyboardTopY, screenBounds: screenBounds)
 
     for group in groups {
         if group.count == 1 {
             // 단일 요소는 그냥 출력
-            lines.append(contentsOf: formatElement(group[0], indent: indent, showCoords: showCoords, duplicateLabels: duplicateLabels, labelIndices: &labelIndices, keyboardTopY: keyboardTopY))
+            lines.append(contentsOf: formatElement(group[0], indent: indent, showCoords: showCoords, duplicateLabels: duplicateLabels, labelIndices: &labelIndices, keyboardTopY: keyboardTopY, screenBounds: screenBounds))
         } else {
             // 여러 요소는 row로 묶어서 출력
             lines.append("\(prefix)- row:")
             for element in group {
-                lines.append(contentsOf: formatElement(element, indent: indent + 1, showCoords: showCoords, duplicateLabels: duplicateLabels, labelIndices: &labelIndices, keyboardTopY: keyboardTopY))
+                lines.append(contentsOf: formatElement(element, indent: indent + 1, showCoords: showCoords, duplicateLabels: duplicateLabels, labelIndices: &labelIndices, keyboardTopY: keyboardTopY, screenBounds: screenBounds))
             }
         }
     }
@@ -178,14 +198,14 @@ private func formatChildrenWithRowGrouping(_ children: [AXElement], indent: Int,
 }
 
 /// 단일 자식 체인 시도 - 무의미한 중간 노드들을 > 로 연결
-private func tryFormatChain(_ element: AXElement, indent: Int, showCoords: Bool, duplicateLabels: Set<String>, labelIndices: inout [String: Int], keyboardTopY: Double?) -> [String]? {
+private func tryFormatChain(_ element: AXElement, indent: Int, showCoords: Bool, duplicateLabels: Set<String>, labelIndices: inout [String: Int], keyboardTopY: Double?, screenBounds: TreeFormatter.ScreenBounds) -> [String]? {
     var chain: [AXElement] = [element]
     var current = element
 
     // 단일 자식 체인 수집
     while let children = current.children, children.count == 1 {
         let child = children[0]
-        if shouldHide(child, keyboardTopY: keyboardTopY) {
+        if shouldHide(child, keyboardTopY: keyboardTopY, screenBounds: screenBounds) {
             break
         }
         chain.append(child)
@@ -211,7 +231,7 @@ private func tryFormatChain(_ element: AXElement, indent: Int, showCoords: Bool,
         // 모두 무의미하면 생략하고 마지막 노드의 자식만 처리
         let lastElement = chain.last!
         if let children = lastElement.children {
-            lines.append(contentsOf: formatChildrenWithRowGrouping(children, indent: indent, showCoords: showCoords, duplicateLabels: duplicateLabels, labelIndices: &labelIndices, keyboardTopY: keyboardTopY))
+            lines.append(contentsOf: formatChildrenWithRowGrouping(children, indent: indent, showCoords: showCoords, duplicateLabels: duplicateLabels, labelIndices: &labelIndices, keyboardTopY: keyboardTopY, screenBounds: screenBounds))
         }
     } else if meaningfulElements.count == 1 {
         // 의미있는 노드가 1개면 그냥 출력
@@ -219,7 +239,7 @@ private func tryFormatChain(_ element: AXElement, indent: Int, showCoords: Bool,
 
         // 체인 끝 노드의 자식들 처리 (단, Switch/Toggle은 자식 출력 안함)
         let lastElement = chain.last!
-        let visibleChildren = lastElement.children?.filter { !shouldHide($0, keyboardTopY: keyboardTopY) } ?? []
+        let visibleChildren = lastElement.children?.filter { !shouldHide($0, keyboardTopY: keyboardTopY, screenBounds: screenBounds) } ?? []
         let hasChildren = !leafTypes.contains(lastElement.type) && !visibleChildren.isEmpty
 
         if hasChildren {
@@ -234,7 +254,7 @@ private func tryFormatChain(_ element: AXElement, indent: Int, showCoords: Bool,
         }
 
         if !leafTypes.contains(lastElement.type), let children = lastElement.children {
-            lines.append(contentsOf: formatChildrenWithRowGrouping(children, indent: indent + 1, showCoords: showCoords, duplicateLabels: duplicateLabels, labelIndices: &labelIndices, keyboardTopY: keyboardTopY))
+            lines.append(contentsOf: formatChildrenWithRowGrouping(children, indent: indent + 1, showCoords: showCoords, duplicateLabels: duplicateLabels, labelIndices: &labelIndices, keyboardTopY: keyboardTopY, screenBounds: screenBounds))
         }
     } else {
         // 여러 의미있는 노드는 > 로 연결
@@ -242,7 +262,7 @@ private func tryFormatChain(_ element: AXElement, indent: Int, showCoords: Bool,
 
         // 체인 끝 노드의 자식들 처리 (단, Switch/Toggle은 자식 출력 안함)
         let lastElement = chain.last!
-        let visibleChildren = lastElement.children?.filter { !shouldHide($0, keyboardTopY: keyboardTopY) } ?? []
+        let visibleChildren = lastElement.children?.filter { !shouldHide($0, keyboardTopY: keyboardTopY, screenBounds: screenBounds) } ?? []
         let hasChildren = !leafTypes.contains(lastElement.type) && !visibleChildren.isEmpty
 
         if hasChildren {
@@ -252,7 +272,7 @@ private func tryFormatChain(_ element: AXElement, indent: Int, showCoords: Bool,
         }
 
         if !leafTypes.contains(lastElement.type), let children = lastElement.children {
-            lines.append(contentsOf: formatChildrenWithRowGrouping(children, indent: indent + 1, showCoords: showCoords, duplicateLabels: duplicateLabels, labelIndices: &labelIndices, keyboardTopY: keyboardTopY))
+            lines.append(contentsOf: formatChildrenWithRowGrouping(children, indent: indent + 1, showCoords: showCoords, duplicateLabels: duplicateLabels, labelIndices: &labelIndices, keyboardTopY: keyboardTopY, screenBounds: screenBounds))
         }
     }
 
@@ -371,7 +391,7 @@ private func formatType(_ type: String) -> String {
 }
 
 /// 숨길 요소인지 확인
-private func shouldHide(_ element: AXElement, keyboardTopY: Double?) -> Bool {
+private func shouldHide(_ element: AXElement, keyboardTopY: Double?, screenBounds: TreeFormatter.ScreenBounds) -> Bool {
     // 기존 숨김 패턴 확인
     let label = element.label.lowercased()
     for pattern in hiddenPatterns {
@@ -387,6 +407,11 @@ private func shouldHide(_ element: AXElement, keyboardTopY: Double?) -> Bool {
 
     // 키보드에 가려진 요소 확인
     if let keyboardY = keyboardTopY, TreeFormatter.isObscuredByKeyboard(element, keyboardTopY: keyboardY) {
+        return true
+    }
+
+    // 화면 밖 요소 확인 (중심점 기준)
+    if !screenBounds.containsCenter(of: element) {
         return true
     }
 
@@ -408,11 +433,11 @@ private func framesOverlapVertically(_ a: AXElement, _ b: AXElement) -> Bool {
 
 /// 자식 요소들을 Y축 기준으로 그룹화
 /// - Returns: 각 행별 요소 배열 (Y 좌표 순으로 정렬됨)
-private func groupChildrenByRow(_ children: [AXElement], keyboardTopY: Double?) -> [[AXElement]] {
+private func groupChildrenByRow(_ children: [AXElement], keyboardTopY: Double?, screenBounds: TreeFormatter.ScreenBounds) -> [[AXElement]] {
     guard !children.isEmpty else { return [] }
 
     // 숨길 요소 제외
-    let visibleChildren = children.filter { !shouldHide($0, keyboardTopY: keyboardTopY) }
+    let visibleChildren = children.filter { !shouldHide($0, keyboardTopY: keyboardTopY, screenBounds: screenBounds) }
     guard !visibleChildren.isEmpty else { return [] }
 
     // Y 좌표 순으로 정렬

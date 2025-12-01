@@ -9,7 +9,6 @@ public struct AXElement: Codable, Sendable {
     public let placeholderValue: String?
     public let frame: AXFrame
     public let enabled: Bool
-    public let hittable: Bool?
     public let hasFocus: Bool?
     public let children: [AXElement]?
 
@@ -21,7 +20,6 @@ public struct AXElement: Codable, Sendable {
         placeholderValue: String? = nil,
         frame: AXFrame,
         enabled: Bool,
-        hittable: Bool? = nil,
         hasFocus: Bool? = nil,
         children: [AXElement]? = nil
     ) {
@@ -32,7 +30,6 @@ public struct AXElement: Codable, Sendable {
         self.placeholderValue = placeholderValue
         self.frame = frame
         self.enabled = enabled
-        self.hittable = hittable
         self.hasFocus = hasFocus
         self.children = children
     }
