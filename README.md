@@ -222,6 +222,38 @@ Here are some things you can ask Claude:
 | "No iOS device or simulator available" | Install Xcode and download simulator, or connect a physical device via USB |
 | "Server did not start" | Check if agent app is running properly on device/simulator. Retry or reboot the device. |
 
+## UI Tree Format
+
+The `get_ui_tree` tool returns a compact YAML-like format optimized for LLM token efficiency:
+
+```yaml
+- Application "Settings":
+  - NavBar:
+    - Text "Settings"
+  - CollectionView:
+    - Cell:
+      - Button "General":
+        - row:
+          - Image
+          - Text "General"
+          - Image
+    - Cell:
+      - Button "Privacy":
+        - row:
+          - Image
+          - Text "Privacy"
+```
+
+**Key features:**
+- **Label-based tapping**: Use `tap` tool with element labels (e.g., `tap("General")`) - no coordinates needed
+- **Duplicate label handling**: When multiple elements share the same label, they're indexed as `"Label"#0`, `"Label"#1`, etc.
+- **Row grouping**: Horizontally aligned elements are grouped under `row:` for better readability
+- **Off-screen filtering**: Elements outside the visible screen are automatically hidden
+- **Keyboard awareness**: Keyboard elements and obscured content are filtered out
+- **Metadata support**: Values and placeholders shown as `/value:` and `/placeholder:` annotations
+
+This format significantly reduces token usage compared to raw accessibility trees while preserving all information needed for UI automation.
+
 ## Architecture
 
 This project consists of two main components:
