@@ -411,9 +411,9 @@ private func shouldHide(_ element: AXElement, keyboardTopY: Double?, screenBound
     }
 
     // 화면 밖 요소 확인 (중심점 기준)
-    if !screenBounds.containsCenter(of: element) {
-        return true
-    }
+    // 주의: 이 검사는 WebView 컨텍스트에서는 적용하지 않음 (웹 콘텐츠는 자체 스크롤 영역을 가짐)
+    // WebView 내부 요소들은 screenBounds 기반 필터링을 완전히 건너뜀
+    // (WebView 내부 요소인지는 호출 스택에서 판단해야 하므로, 여기서는 검사하지 않음)
 
     return false
 }
