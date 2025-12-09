@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "ios-control": {
+      "type": "stdio",
+      "command": "make",
+      "args": [
+        "mcp-run"
+      ],
+      "env": {}
+    }
+  }
+}
