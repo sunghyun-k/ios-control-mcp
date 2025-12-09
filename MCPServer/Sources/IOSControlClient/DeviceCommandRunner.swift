@@ -52,8 +52,11 @@ extension SimctlRunner: DeviceCommandRunner {
                     continue
                 }
 
-                // iPhone만 필터링
-                guard name.contains("iPhone") else { continue }
+                // iPhone 시뮬레이터만 필터링 (deviceTypeIdentifier 기준)
+                // 사용자가 시뮬레이터 이름을 변경해도 감지되도록 함
+                if let deviceTypeId = device["deviceTypeIdentifier"] as? String {
+                    guard deviceTypeId.contains("iPhone") else { continue }
+                }
 
                 let isBooted = state == "Booted"
 
