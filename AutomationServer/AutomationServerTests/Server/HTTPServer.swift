@@ -2,14 +2,8 @@ import FlyingFox
 import Foundation
 import os
 
-/// 라우트 정의 프로토콜
-protocol Routable {
-    var route: String { get }
-    var handler: HTTPHandler { get }
-}
-
 /// 라우트 정의
-enum Route: String, CaseIterable, Routable {
+enum Route: String, CaseIterable {
     case status
     case tap
     case swipe
@@ -45,7 +39,8 @@ struct IOSControlServer {
 
     init(port: UInt16 = Constants.defaultPort) {
         if let envPort = ProcessInfo.processInfo.environment[Constants.portEnvKey],
-           let p = UInt16(envPort) {
+           let p = UInt16(envPort)
+        {
             self.port = p
         } else {
             self.port = port
@@ -53,8 +48,8 @@ struct IOSControlServer {
     }
 
     func start() async throws {
-        let server = HTTPServer(
-            address: try .inet(ip4: Constants.serverIP, port: port),
+        let server = try HTTPServer(
+            address: .inet(ip4: Constants.serverIP, port: port),
             timeout: Constants.serverTimeout
         )
 
