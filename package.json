@@ -1,6 +1,6 @@
 {
   "name": "ios-control-mcp",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "description": "iOS Simulator automation MCP server",
   "bin": {
     "ios-control-mcp": "bin/cli.js"
