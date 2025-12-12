@@ -4,9 +4,8 @@ const { spawn } = require("child_process");
 const path = require("path");
 const fs = require("fs");
 
-const binDir = path.join(__dirname, "..", "vendor");
-const mcpServer = path.join(binDir, "MCPServer");
-const agentApp = path.join(binDir, "AutomationServerTests-Runner.app");
+const mcpServer = path.join(__dirname, "MCPServer");
+const workspacePath = path.join(__dirname, "..", "iOSControlMCP.xcworkspace");
 
 if (!fs.existsSync(mcpServer)) {
   console.error("Error: MCPServer binary not found.");
@@ -18,7 +17,7 @@ const child = spawn(mcpServer, process.argv.slice(2), {
   stdio: "inherit",
   env: {
     ...process.env,
-    IOS_CONTROL_AGENT_APP: agentApp,
+    IOS_CONTROL_WORKSPACE_PATH: workspacePath,
   },
 });
 

@@ -1,24 +1,26 @@
 import Foundation
+import iOSAutomation
 import MCP
-import IOSControlClient
 
-struct LaunchAppTool: MCPTool {
+enum LaunchAppTool: MCPToolDefinition {
     static let name = "launch_app"
+    static let description = "Launch an app by its bundle ID."
+    static let parameters: [ToolParameter] = [
+        ToolParameter(
+            name: "bundle_id",
+            type: .string,
+            description: "Bundle ID of the app (e.g., com.apple.Preferences for Settings)",
+        ),
+    ]
 
-    static let description = "Launches an app by bundle ID. Use list_apps to find bundle IDs."
+    static func execute(
+        arguments: [String: Value]?,
+        automation: iOSAutomation,
+    ) async throws -> [Tool.Content] {
+        let args = arguments ?? [:]
+        let bundleId = try args.string("bundle_id")
 
-    static let inputSchema: Value = .object([
-        "type": .string("object"),
-        "properties": .object([
-            "bundle_id": .object(["type": .string("string"), "description": .string("Bundle ID of the app to launch")])
-        ]),
-        "required": .array([.string("bundle_id")])
-    ])
-
-    typealias Arguments = BundleIdArgs
-
-    static func execute(args: BundleIdArgs, client: any AgentClient) async throws -> [Tool.Content] {
-        try await client.launchApp(bundleId: args.bundleId)
-        return [.text("launched \(args.bundleId)")]
+        try await automation.launchApp(bundleId: bundleId)
+        return [.text("Launched '\(bundleId)'")]
     }
 }

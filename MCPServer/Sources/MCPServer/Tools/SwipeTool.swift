@@ -1,30 +1,60 @@
 import Foundation
+import iOSAutomation
 import MCP
-import IOSControlClient
 
-struct SwipeTool: MCPTool {
+enum SwipeTool: MCPToolDefinition {
     static let name = "swipe"
+    static let description = "Swipe in a direction. Optionally on a specific element."
+    static let parameters: [ToolParameter] = [
+        ToolParameter(
+            name: "direction",
+            type: .string,
+            description: "Swipe direction: up, down, left, right",
+            enumValues: ["up", "down", "left", "right"],
+        ),
+        ToolParameter(
+            name: "label",
+            type: .string,
+            description: "Optional: Label of element to swipe on",
+            required: false,
+        ),
+        ToolParameter(
+            name: "element_type",
+            type: .string,
+            description: "Optional: Filter by element type (e.g., scroll_view, table, collection_view)",
+            required: false,
+            enumValues: AXElementType.commonTypeNames,
+        ),
+    ]
 
-    static let description = "Swipes from start point to end point. Use scroll for regular scrolling, drag for element dragging."
+    static func execute(
+        arguments: [String: Value]?,
+        automation: iOSAutomation,
+    ) async throws -> [Tool.Content] {
+        let args = arguments ?? [:]
+        let directionStr = try args.string("direction")
+        guard let direction = SwipeDirection(rawValue: directionStr) else {
+            throw ToolError
+                .invalidArgument(
+                    "Invalid direction: \(directionStr). Must be up, down, left, or right.",
+                )
+        }
+        let label = args.optionalString("label")
+        let elementType = args.optionalString("element_type").flatMap { AXElementType(name: $0) }
 
-    static let inputSchema: Value = .object([
-        "type": .string("object"),
-        "properties": .object([
-            "start": .object(["type": .string("string"), "description": .string("Start coordinate as 'x,y' (e.g., '100,200')")]),
-            "end": .object(["type": .string("string"), "description": .string("End coordinate as 'x,y' (e.g., '100,500')")]),
-            "duration": .object(["type": .string("number"), "description": .string("Swipe duration in seconds. Default 0.5")]),
-            "hold_duration": .object(["type": .string("number"), "description": .string("Hold time before swipe starts in seconds. Used for dragging")])
-        ]),
-        "required": .array([.string("start"), .string("end")])
-    ])
+        try await automation.swipeByLabel(
+            direction: direction,
+            label: label,
+            elementType: elementType,
+        )
 
-    typealias Arguments = SwipeArgs
-
-    static func execute(args: SwipeArgs, client: any AgentClient) async throws -> [Tool.Content] {
-        let startCoord = try args.parseStart()
-        let endCoord = try args.parseEnd()
-        let duration = args.duration ?? GestureDefaults.swipeDuration
-        try await client.swipe(startX: startCoord.x, startY: startCoord.y, endX: endCoord.x, endY: endCoord.y, duration: duration, holdDuration: args.holdDuration, liftDelay: GestureDefaults.liftDelay)
-        return [.text("swiped (\(startCoord.x), \(startCoord.y)) -> (\(endCoord.x), \(endCoord.y))")]
+        var message = "Swiped \(directionStr)"
+        if let label {
+            message += " on '\(label)'"
+        }
+        if let elementType {
+            message += " (type: \(elementType.name))"
+        }
+        return [.text(message)]
     }
 }

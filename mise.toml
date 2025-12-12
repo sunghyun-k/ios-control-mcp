@@ -1,0 +1,17 @@
+[tools]
+tuist = "4.97.2"
+swiftformat = "latest"
+
+[tasks.mcp]
+description = "Build and run MCPServer"
+dir = "{{config_root}}"
+run = """
+tuist build MCPServer --quiet
+DERIVED_DATA=$(xcodebuild -workspace iOSControlMCP.xcworkspace -scheme MCPServer -showBuildSettings 2>/dev/null | grep -m 1 'BUILT_PRODUCTS_DIR' | awk '{print $3}')
+IOS_CONTROL_WORKSPACE_PATH="$(pwd)/iOSControlMCP.xcworkspace" "$DERIVED_DATA/MCPServer"
+"""
+
+[tasks.playground]
+description = "Run playground test"
+dir = "{{config_root}}"
+run = "xcodebuild test -workspace iOSControlMCP.xcworkspace -scheme iOSAutomationTests -only-testing:'iOSAutomationTests/playground()' 2>&1 | sed -n '/Test run started/,$p' | grep -v -E '(xcodebuild\\[|Test session results|xcresult$)'"

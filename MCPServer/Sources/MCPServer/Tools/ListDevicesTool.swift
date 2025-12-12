@@ -1,34 +1,40 @@
 import Foundation
+import iOSAutomation
 import MCP
-import IOSControlClient
 
-struct ListDevicesTool: MCPTool {
+enum ListDevicesTool: MCPToolDefinition {
     static let name = "list_devices"
+    static let description = """
+    List all available iOS devices (simulators and physical devices).
+    Returns device ID (UDID), name, type, and connection status.
+    Use this to find a device before calling select_device.
+    """
+    static let parameters: [ToolParameter] = []
 
-    static let description = "Returns a list of physical iOS devices connected via USB. Not needed when using simulators."
-
-    static let inputSchema: Value = .object([
-        "type": .string("object"),
-        "properties": .object([:])
-    ])
-
-    typealias Arguments = EmptyArgs
-
-    static func execute(args: Arguments, client: any AgentClient) async throws -> [Tool.Content] {
-        let devices = try DeviceCtlRunner.shared.listDevices()
+    static func execute(
+        arguments _: [String: Value]?,
+        automation: iOSAutomation,
+    ) async throws -> [Tool.Content] {
+        let devices = try automation.listDevices()
 
         if devices.isEmpty {
-            return [.text("No physical devices connected.")]
+            return [.text("No devices found. Start a simulator or connect a physical device.")]
         }
 
-        var lines: [String] = ["## Connected Physical Devices"]
+        var lines = ["Available devices:"]
         for device in devices {
-            lines.append("- \(device.name) (\(device.hardwareUdid))")
-            if let os = device.osVersion {
-                lines.append("  \(device.platform) \(os)")
-            }
-            lines.append("  Model: \(device.model)")
-            lines.append("  Connection: \(device.transportType) (\(device.connectionState))")
+            let status = device.isConnected ? "connected" : "disconnected"
+            let typeIcon = device.type == .physical ? "physical" : "simulator"
+            let osInfo = device.osVersion.map { " (iOS \($0))" } ?? ""
+            lines.append("- [\(typeIcon)] \(device.name)\(osInfo)")
+            lines.append("  ID: \(device.id)")
+            lines.append("  Status: \(status)")
+        }
+
+        // 현재 선택된 기기 표시
+        if let selected = automation.selectedDevice {
+            lines.append("")
+            lines.append("Currently selected: \(selected.name) (\(selected.id))")
         }
 
         return [.text(lines.joined(separator: "\n"))]

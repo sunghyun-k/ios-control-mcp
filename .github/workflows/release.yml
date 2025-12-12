@@ -6,7 +6,7 @@ on:
       - "v*"
 
 jobs:
-  build:
+  publish-npm:
     runs-on: macos-14  # arm64 runner
 
     steps:
@@ -17,42 +17,39 @@ jobs:
         with:
           xcode-version: latest-stable
 
-      - name: Build all releases
-        run: make release
+      - name: Setup mise
+        uses: jdx/mise-action@v2
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-artifacts
-          path: release/*.tar.gz
+      - name: Generate Xcode projects
+        run: tuist generate --no-open
 
-  release:
-    needs: build
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
+      - name: Build MCPServer (universal binary)
+        run: |
+          # arm64 빌드
+          xcodebuild -workspace iOSControlMCP.xcworkspace \
+            -scheme MCPServer \
+            -configuration Release \
+            -destination 'generic/platform=macOS' \
+            -derivedDataPath .build/arm64 \
+            ARCHS=arm64 \
+            ONLY_ACTIVE_ARCH=NO
 
-    steps:
-      - uses: actions/checkout@v4
+          # x86_64 빌드
+          xcodebuild -workspace iOSControlMCP.xcworkspace \
+            -scheme MCPServer \
+            -configuration Release \
+            -destination 'generic/platform=macOS' \
+            -derivedDataPath .build/x86_64 \
+            ARCHS=x86_64 \
+            ONLY_ACTIVE_ARCH=NO
 
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: release-artifacts
-          path: artifacts
+          # Universal binary 생성
+          lipo -create \
+            .build/arm64/Build/Products/Release/MCPServer \
+            .build/x86_64/Build/Products/Release/MCPServer \
+            -output bin/MCPServer
 
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: artifacts/*.tar.gz
-          generate_release_notes: true
-
-  publish-npm:
-    needs: release
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
+          chmod +x bin/MCPServer
 
       - name: Setup Node.js
         uses: actions/setup-node@v4

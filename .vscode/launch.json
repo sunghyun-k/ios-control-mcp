@@ -4,39 +4,41 @@
       "type": "swift",
       "request": "launch",
       "args": [],
-      "cwd": "${workspaceFolder:ios-control-mcp}/MCPServer",
-      "name": "Debug MCPServer (MCPServer)",
-      "target": "MCPServer",
+      "cwd": "${workspaceFolder:ios-control-mcp}/_LEGACY/MCPServer",
+      "name": "Debug Playground (_LEGACY/MCPServer)",
+      "target": "Playground",
       "configuration": "debug",
-      "preLaunchTask": "swift: Build Debug MCPServer (MCPServer)"
+      "preLaunchTask": "swift: Build Debug Playground (_LEGACY/MCPServer)"
     },
     {
       "type": "swift",
       "request": "launch",
       "args": [],
-      "cwd": "${workspaceFolder:ios-control-mcp}/MCPServer",
-      "name": "Release MCPServer (MCPServer)",
+      "cwd": "${workspaceFolder:ios-control-mcp}/_LEGACY/MCPServer",
+      "name": "Release Playground (_LEGACY/MCPServer)",
+      "target": "Playground",
+      "configuration": "release",
+      "preLaunchTask": "swift: Build Release Playground (_LEGACY/MCPServer)"
+    },
+    {
+      "type": "swift",
+      "request": "launch",
+      "args": [],
+      "cwd": "${workspaceFolder:ios-control-mcp}/_LEGACY/MCPServer",
+      "name": "Debug MCPServer (_LEGACY/MCPServer)",
+      "target": "MCPServer",
+      "configuration": "debug",
+      "preLaunchTask": "swift: Build Debug MCPServer (_LEGACY/MCPServer)"
+    },
+    {
+      "type": "swift",
+      "request": "launch",
+      "args": [],
+      "cwd": "${workspaceFolder:ios-control-mcp}/_LEGACY/MCPServer",
+      "name": "Release MCPServer (_LEGACY/MCPServer)",
       "target": "MCPServer",
       "configuration": "release",
-      "preLaunchTask": "swift: Build Release MCPServer (MCPServer)"
-    },
-    {
-      "type": "lldb",
-      "request": "launch",
-      "args": [],
-      "cwd": "${workspaceFolder:ios-control-mcp}/MCPServer",
-      "name": "Debug Playground (MCPServer)",
-      "program": "${workspaceFolder:ios-control-mcp}/MCPServer/.build/debug/Playground",
-      "preLaunchTask": "swift: Build Debug Playground (MCPServer)"
-    },
-    {
-      "type": "lldb",
-      "request": "launch",
-      "args": [],
-      "cwd": "${workspaceFolder:ios-control-mcp}/MCPServer",
-      "name": "Release Playground (MCPServer)",
-      "program": "${workspaceFolder:ios-control-mcp}/MCPServer/.build/release/Playground",
-      "preLaunchTask": "swift: Build Release Playground (MCPServer)"
+      "preLaunchTask": "swift: Build Release MCPServer (_LEGACY/MCPServer)"
     }
   ]
 }

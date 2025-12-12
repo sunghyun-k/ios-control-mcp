@@ -33,26 +33,27 @@ That's it! Claude can now control iOS simulators. See [Installation](#installati
 ## Features
 
 ### Device Management
-- **list_devices** - List connected iOS devices (only needed when physical devices are connected)
-- **select_device** - Select device to control (specify UDID or auto-select)
 
-### UI Interactions
-- **tap** - Find and tap UI element by label (supports long press)
-- **tap_coordinate** - Tap at specific coordinates
-- **swipe** - Swipe gesture
-- **scroll** - Scroll screen (direction-based)
-- **drag** - Drag UI element (for list reordering, etc.)
-- **pinch** - Pinch zoom in/out (for maps, images)
-- **input_text** - Input text
-
-### App Management
-- **launch_app** - Launch app by bundle ID
-- **list_apps** - List installed apps
-- **go_home** - Go to home screen
+- **list_devices** - List connected iOS devices (simulators and physical devices)
+- **select_device** - Select device to control by UDID
 
 ### Screen Information
-- **get_ui_tree** - Get UI accessibility tree (YAML format, optional coordinates)
-- **screenshot** - Capture screenshot (PNG)
+
+- **get_ui_snapshot** - Get UI element tree of all foreground apps
+- **screenshot** - Take a screenshot of the current screen
+
+### UI Interactions
+
+- **tap** - Tap a UI element by its label
+- **tap_at_point** - Tap at specific screen coordinates
+- **type_text** - Type text (optionally into a specific element)
+- **swipe** - Swipe in a direction
+- **drag** - Drag from one element to another by their labels
+
+### App & Device Control
+
+- **launch_app** - Launch an app by its bundle ID
+- **press_button** - Press a hardware button (home, volumeUp, volumeDown)
 
 ## Requirements
 
@@ -181,127 +182,16 @@ Here are some things you can ask Claude:
 
 **Screenshots & UI inspection:**
 > "Take a screenshot of the current screen"
-> "Show me the UI tree of the current screen"
+> "Show me the UI snapshot"
 
 **App navigation:**
-> "Open the Settings app and go to General > About"
-> "Launch Safari and navigate to apple.com"
+> "Open the Settings app"
+> "Launch Safari"
 
 **UI interactions:**
 > "Tap the 'Sign In' button"
-> "Enter 'hello@example.com' in the email field"
-> "Scroll down to find the 'Privacy' option"
-
-**Complex flows:**
-> "Test the onboarding flow: skip the intro, create an account with test data, and verify the home screen"
-
-## Troubleshooting
-
-### Simulator
-
-| Error | Solution |
-|-------|----------|
-| "No available iPhone simulator" | Install Xcode and run `xcodebuild -downloadPlatform iOS` |
-| "AutomationServer app not found" | It builds automatically on first run. Make sure Xcode is installed. |
-| "Simulator boot failed" | Check if iOS Simulator is installed in Xcode → Settings → Platforms |
-
-### Physical Devices
-
-| Error | Solution |
-|-------|----------|
-| "Physical device requires Apple Developer Team ID" | Add `IOS_CONTROL_TEAM_ID` to `env` in MCP config |
-| "Xcode project not found" | Make sure Xcode is installed |
-| Build failed (signing error) | 1) Verify Team ID is correct<br>2) Ensure device is connected via USB<br>3) Build any app to the device in Xcode first to set up provisioning |
-| "Untrusted Developer" | Go to Settings → General → VPN & Device Management on device and trust the developer app |
-| Device not showing in list | 1) Reconnect USB cable<br>2) Check "Trust This Computer" prompt<br>3) Verify Developer Mode is enabled |
-
-### Common
-
-| Error | Solution |
-|-------|----------|
-| "No iOS device or simulator available" | Install Xcode and download simulator, or connect a physical device via USB |
-| "Server did not start" | Check if agent app is running properly on device/simulator. Retry or reboot the device. |
-
-## UI Tree Format
-
-The `get_ui_tree` tool returns a compact YAML-like format optimized for LLM token efficiency:
-
-```yaml
-- Application "Settings":
-  - NavBar:
-    - Text "Settings"
-  - CollectionView:
-    - Cell:
-      - Button "General":
-        - row:
-          - Image
-          - Text "General"
-          - Image
-    - Cell:
-      - Button "Privacy":
-        - row:
-          - Image
-          - Text "Privacy"
-```
-
-**Key features:**
-- **Label-based tapping**: Use `tap` tool with element labels (e.g., `tap("General")`) - no coordinates needed
-- **Duplicate label handling**: When multiple elements share the same label, they're indexed as `"Label"#0`, `"Label"#1`, etc.
-- **Row grouping**: Horizontally aligned elements are grouped under `row:` for better readability
-- **Off-screen filtering**: Elements outside the visible screen are automatically hidden
-- **Keyboard awareness**: Keyboard elements and obscured content are filtered out
-- **Metadata support**: Values and placeholders shown as `/value:` and `/placeholder:` annotations
-
-This format significantly reduces token usage compared to raw accessibility trees while preserving all information needed for UI automation.
-
-## Architecture
-
-This project consists of two main components:
-
-1. **MCP Server** (macOS) - MCP protocol server that communicates with LLMs
-2. **AutomationServer** (iOS) - XCTest-based automation agent running on simulator/device
-
-```
-┌─────────────┐     MCP      ┌─────────────┐    HTTP     ┌──────────────────┐
-│     LLM     │◄────────────►│  MCP Server │◄───────────►│ AutomationServer │
-│  (Claude)   │   Protocol   │   (macOS)   │  (localhost)│    (iOS XCTest)  │
-└─────────────┘              └─────────────┘             └──────────────────┘
-```
-
-It leverages the special privileges of the XCTest framework to run an HTTP server inside the simulator, synthesizing touch/swipe events through Objective-C runtime reflection.
-
-## Development
-
-### Build Commands
-
-```bash
-# MCP Server
-make mcp              # Build
-make mcp-run          # Build and run
-
-# AutomationServer (Simulator)
-make agent            # Build
-make agent-run        # Build and run
-
-# AutomationServer (Physical Device)
-make device-agent TEAM=<TEAM_ID>
-make device-agent-run DEVICE_UDID=<UDID> TEAM=<TEAM_ID>
-
-# Test Playground
-make playground
-
-# Clean
-make clean
-```
-
-### Playground
-
-Test the client library directly without the MCP server:
-
-1. Run AutomationServer (in separate terminal): `make agent-run`
-2. Run Playground: `make playground`
-
-Edit `MCPServer/Sources/Playground/main.swift` to write test code.
+> "Type 'hello@example.com' in the email field"
+> "Swipe up"
 
 ## License
 

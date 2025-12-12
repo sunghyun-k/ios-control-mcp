@@ -1,102 +1,64 @@
 import Foundation
+import iOSAutomation
 import MCP
-import Common
-import IOSControlClient
 
-/// 도구 레지스트리
-/// 모든 MCP 도구를 관리하고 핸들러를 제공합니다.
+/// MCP 도구 레지스트리
+/// 모든 도구를 관리하고 핸들러를 제공
 enum ToolRegistry {
+    private static let automation = iOSAutomation()
+
+    /// 등록된 모든 도구 타입
+    /// 새 도구를 추가하려면 여기에만 추가하면 됨
+    private static let toolTypes: [any MCPToolDefinition.Type] = [
+        // 기기 관리 (먼저 호출해야 함)
+        ListDevicesTool.self,
+        SelectDeviceTool.self,
+        // UI 조회
+        GetUISnapshotTool.self,
+        ScreenshotTool.self,
+        // UI 조작
+        TapTool.self,
+        TapAtPointTool.self,
+        TypeTextTool.self,
+        SwipeTool.self,
+        DragTool.self,
+        // 앱 관리
+        LaunchAppTool.self,
+        // 디바이스
+        PressButtonTool.self,
+    ]
+
     /// 모든 Tool 객체
     static var allTools: [Tool] {
-        [
-            // 기기 관리
-            ListDevicesTool.tool,
-            SelectDeviceTool.tool,
-            // UI 조작
-            TapTool.tool,
-            TapCoordinateTool.tool,
-            SwipeTool.tool,
-            ScrollTool.tool,
-            DragTool.tool,
-            InputTextTool.tool,
-            PinchTool.tool,
-            // 정보 조회
-            GetUITreeTool.tool,
-            ScreenshotTool.tool,
-            // 앱 관리
-            ListAppsTool.tool,
-            LaunchAppTool.tool,
-            GoHomeTool.tool
-        ]
+        var tools: [Tool] = []
+        for toolType in toolTypes {
+            tools.append(toolType.tool)
+        }
+        return tools
     }
 
     /// 도구 이름으로 핸들러 조회 및 실행
     static func handle(name: String, arguments: [String: Value]?) async throws -> [Tool.Content] {
-        // 기기 관리 도구 (Agent 없이 동작)
-        switch name {
-        case ListDevicesTool.name:
-            return try await ListDevicesTool.handle(arguments: arguments, client: NoOpAgentClient())
-        case SelectDeviceTool.name:
-            return try await SelectDeviceTool.handle(arguments: arguments, client: NoOpAgentClient())
-        default:
-            break
+        guard let toolType = toolTypes.first(where: { $0.name == name }) else {
+            throw ToolError.unknownTool(name)
         }
-
-        // 선택된 기기(또는 자동 선택)에 맞는 클라이언트 획득
-        let client = try await DeviceManager.shared.getOrAutoSelectAgentClient()
-
-        // Agent 서버 실행 보장 (시뮬레이터의 경우에만)
-        try await ensureServerRunning(client: client)
-
-        switch name {
-        // UI 조작
-        case TapTool.name:
-            return try await TapTool.handle(arguments: arguments, client: client)
-        case TapCoordinateTool.name:
-            return try await TapCoordinateTool.handle(arguments: arguments, client: client)
-        case SwipeTool.name:
-            return try await SwipeTool.handle(arguments: arguments, client: client)
-        case ScrollTool.name:
-            return try await ScrollTool.handle(arguments: arguments, client: client)
-        case DragTool.name:
-            return try await DragTool.handle(arguments: arguments, client: client)
-        case InputTextTool.name:
-            return try await InputTextTool.handle(arguments: arguments, client: client)
-        case PinchTool.name:
-            return try await PinchTool.handle(arguments: arguments, client: client)
-        // 정보 조회
-        case GetUITreeTool.name:
-            return try await GetUITreeTool.handle(arguments: arguments, client: client)
-        case ScreenshotTool.name:
-            return try await ScreenshotTool.handle(arguments: arguments, client: client)
-        // 앱 관리
-        case ListAppsTool.name:
-            return try await ListAppsTool.handle(arguments: arguments, client: client)
-        case LaunchAppTool.name:
-            return try await LaunchAppTool.handle(arguments: arguments, client: client)
-        case GoHomeTool.name:
-            return try await GoHomeTool.handle(arguments: arguments, client: client)
-        default:
-            throw IOSControlError.unknownTool(name)
-        }
+        return try await toolType.execute(arguments: arguments, automation: automation)
     }
+}
 
-    /// 서버가 실행 중인지 확인하고, 필요시 Agent 시작
-    private static func ensureServerRunning(client: any AgentClient) async throws {
-        if await client.isServerRunning() {
-            return
-        }
+enum ToolError: LocalizedError {
+    case unknownTool(String)
+    case missingArgument(String)
+    case invalidArgument(String)
 
-        guard let device = try await DeviceManager.shared.getCurrentDevice() else {
-            return
-        }
-
-        switch device.type {
-        case .simulator:
-            try await AutomationServerRunner.shared.start()
-
-        case .physical:
-            try await DeviceAgentRunner.shared.start(udid: device.id)
+    var errorDescription: String? {
+        switch self {
+        case .unknownTool(let name):
+            "Unknown tool: \(name)"
+        case .missingArgument(let name):
+            "Missing required argument: \(name)"
+        case .invalidArgument(let message):
+            "Invalid argument: \(message)"
         }
     }
 }

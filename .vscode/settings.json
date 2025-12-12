@@ -1,3 +1,6 @@
 {
-  "sweetpad.build.xcodeWorkspacePath": "AutomationServer/AutomationServer.xcodeproj/project.xcworkspace"
+  "[swift]": {
+    "editor.defaultFormatter": "vknabel.vscode-swiftformat"
+  },
+  "sweetpad.build.xcodeWorkspacePath": "iOSControlMCP.xcworkspace"
 }
