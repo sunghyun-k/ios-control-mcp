@@ -7,7 +7,7 @@ on:
 
 jobs:
   publish-npm:
-    runs-on: macos-14  # arm64 runner
+    runs-on: macos-15  # arm64 runner, tuist 4.97.2+ requires macOS 15
 
     steps:
       - uses: actions/checkout@v4
