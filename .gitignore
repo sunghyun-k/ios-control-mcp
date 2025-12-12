@@ -66,6 +66,9 @@ DerivedData/
 graph.dot
 Derived/
 
+### Auto-generated files ###
+MCPServer/Sources/Generated/
+
 ### Tuist managed dependencies ###
 Tuist/.build
 

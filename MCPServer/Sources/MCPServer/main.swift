@@ -13,7 +13,7 @@ iOS simulator/device automation tool.
 
 let server = await Server(
     name: "ios-control",
-    version: "1.0.0",
+    version: appVersion,
     instructions: instructions,
     capabilities: .init(tools: .init()),
 )

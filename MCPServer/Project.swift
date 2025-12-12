@@ -7,6 +7,22 @@ let projectRoot: String = URL(filePath: #filePath)
     .deletingLastPathComponent() // 프로젝트 루트
     .path
 
+/// 버전 파일 생성 스크립트
+let generateVersionScript = TargetScript.pre(
+    script: """
+    VERSION=$(node -p "require('$SRCROOT/../package.json').version")
+    VERSION_FILE="$SRCROOT/Sources/Generated/Version.swift"
+    mkdir -p "$(dirname "$VERSION_FILE")"
+    cat > "$VERSION_FILE" << EOF
+    // Auto-generated file - DO NOT EDIT
+    let appVersion = "$VERSION"
+    EOF
+    """,
+    name: "Generate Version",
+    inputPaths: ["$SRCROOT/../package.json"],
+    outputPaths: ["$SRCROOT/Sources/Generated/Version.swift"],
+)
+
 /// 공통 환경변수
 let commonArguments: Arguments = .arguments(
     environmentVariables: [
@@ -54,7 +70,9 @@ let project = Project(
             product: .commandLineTool,
             bundleId: "",
             deploymentTargets: .macOS("14.0"),
+            sources: [.generated("Sources/Generated/Version.swift")],
             buildableFolders: ["Sources/MCPServer"],
+            scripts: [generateVersionScript],
             dependencies: [
                 .target(name: "iOSAutomation"),
                 .package(product: "MCP", type: .runtime),
