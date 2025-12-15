@@ -45,7 +45,6 @@ That's it! Claude can now control iOS simulators. See [Installation](#installati
 ### UI Interactions
 
 - **tap** - Tap a UI element by its label
-- **tap_at_point** - Tap at specific screen coordinates
 - **type_text** - Type text (optionally into a specific element)
 - **swipe** - Swipe in a direction
 - **drag** - Drag from one element to another by their labels

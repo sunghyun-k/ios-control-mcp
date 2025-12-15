@@ -45,7 +45,6 @@ https://github.com/user-attachments/assets/4284357b-6b6e-4e6a-a81c-e5976052be51
 ### UI 조작
 
 - **tap** - 라벨로 UI 요소 탭
-- **tap_at_point** - 특정 좌표 탭
 - **type_text** - 텍스트 입력 (특정 요소에 입력 가능)
 - **swipe** - 스와이프 제스처
 - **drag** - 라벨로 요소를 다른 요소로 드래그
