@@ -9,6 +9,7 @@ public struct SimpleElement: Sendable {
     public let label: String?
     public let identifier: String?
     public let value: String?
+    public let placeholderValue: String?
     public let frame: AXFrame
     public let children: [SimpleElement]?
 }
@@ -34,6 +35,7 @@ extension AXSnapshot {
         let hasNoInfo = (label == nil || label?.isEmpty == true)
             && (identifier == nil || identifier?.isEmpty == true)
             && (value == nil || value?.isEmpty == true)
+            && (placeholderValue == nil || placeholderValue?.isEmpty == true)
 
         // 먼저 자식들을 변환 (변환 후 개수가 달라질 수 있음)
         let convertedChildren = children?
@@ -49,6 +51,7 @@ extension AXSnapshot {
                 label: child.label,
                 identifier: child.identifier,
                 value: child.value,
+                placeholderValue: child.placeholderValue,
                 frame: child.frame,
                 children: child.children,
             )
@@ -59,6 +62,7 @@ extension AXSnapshot {
             label: label,
             identifier: identifier,
             value: value,
+            placeholderValue: placeholderValue,
             frame: frame ?? .zero,
             children: convertedChildren,
         )
@@ -83,6 +87,8 @@ extension SimpleElement {
         if let identifier, !identifier.isEmpty { return true }
         // value가 있으면 정보 있음
         if let value, !value.isEmpty { return true }
+        // placeholderValue가 있으면 정보 있음
+        if let placeholderValue, !placeholderValue.isEmpty { return true }
         // children이 있으면 정보 있음
         if let children, !children.isEmpty { return true }
         // 입력 가능한 타입은 정보가 없어도 유지
@@ -116,13 +122,16 @@ extension SimpleElement {
         let typeStr = compactTypes.map(\.name).joined(separator: " > ")
         var header = "\(prefix)- \(typeStr)"
 
-        // label, identifier, value를 한 줄에 표시
+        // label, value, placeholderValue를 한 줄에 표시
         var attrs: [String] = []
         if let label, !label.isEmpty {
             attrs.append("label: \"\(label)\"")
         }
         if let value, !value.isEmpty {
             attrs.append("value: \"\(value)\"")
+        }
+        if let placeholderValue, !placeholderValue.isEmpty {
+            attrs.append("placeholder: \"\(placeholderValue)\"")
         }
         if !attrs.isEmpty {
             header += " (\(attrs.joined(separator: ", ")))"

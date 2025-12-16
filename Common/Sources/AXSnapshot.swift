@@ -11,6 +11,7 @@ public struct AXSnapshot: Codable, Sendable {
     public let horizontalSizeClass: Int?
     public let identifier: String?
     public let label: String?
+    public let placeholderValue: String?
     public let selected: Bool?
     public let title: String?
     public let value: String?
@@ -27,6 +28,7 @@ public struct AXSnapshot: Codable, Sendable {
         horizontalSizeClass: Int? = nil,
         identifier: String? = nil,
         label: String? = nil,
+        placeholderValue: String? = nil,
         selected: Bool? = nil,
         title: String? = nil,
         value: String? = nil,
@@ -42,6 +44,7 @@ public struct AXSnapshot: Codable, Sendable {
         self.horizontalSizeClass = horizontalSizeClass
         self.identifier = identifier
         self.label = label
+        self.placeholderValue = placeholderValue
         self.selected = selected
         self.title = title
         self.value = value
