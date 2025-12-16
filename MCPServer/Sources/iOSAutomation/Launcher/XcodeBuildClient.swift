@@ -58,9 +58,12 @@ struct XcodeBuildClient: Sendable {
         }
 
         // Team ID가 있으면 코드 서명 설정 추가 (실기기용)
+        // Bundle ID를 Team ID 기반으로 동적 생성하여 사용자별 충돌 방지
         if let teamId {
             arguments.append("DEVELOPMENT_TEAM=\(teamId)")
             arguments.append("CODE_SIGN_STYLE=Automatic")
+            arguments
+                .append("PRODUCT_BUNDLE_IDENTIFIER=com.\(teamId).ioscontrol.uiautomationserver")
         }
 
         try await runXcodebuild(arguments: arguments)
