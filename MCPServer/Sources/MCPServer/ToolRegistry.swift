@@ -18,6 +18,7 @@ enum ToolRegistry {
         ScreenshotTool.self,
         // UI 조작
         TapTool.self,
+        LongPressTool.self,
         TypeTextTool.self,
         SwipeTool.self,
         DragTool.self,

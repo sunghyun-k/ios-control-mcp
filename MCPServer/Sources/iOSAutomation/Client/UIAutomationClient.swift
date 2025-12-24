@@ -51,6 +51,12 @@ final class UIAutomationClient: Sendable {
         try await post(path: "apps/\(bundleId)/tap", body: body)
     }
 
+    /// 요소 오래 누르기
+    func longPress(bundleId: String, element: ElementTarget, duration: Double = 1.0) async throws {
+        let body = LongPressRequestBody(element: element, duration: duration)
+        try await post(path: "apps/\(bundleId)/longPress", body: body)
+    }
+
     /// 좌표로 탭
     func tapAtPoint(x: Double, y: Double) async throws {
         let body = TapAtPointRequestBody(x: x, y: y)

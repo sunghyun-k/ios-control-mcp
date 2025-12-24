@@ -34,6 +34,18 @@ public struct TapRequestBody: Codable, Sendable {
     }
 }
 
+/// Long Press 요청 바디
+public struct LongPressRequestBody: Codable, Sendable {
+    public let element: ElementTarget
+    /// 누르고 있는 시간 (초)
+    public let duration: Double
+
+    public init(element: ElementTarget, duration: Double = 1.0) {
+        self.element = element
+        self.duration = duration
+    }
+}
+
 /// 텍스트 입력 요청 바디
 public struct TypeTextRequestBody: Codable, Sendable {
     public let text: String

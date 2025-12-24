@@ -19,6 +19,7 @@ final class Entry: XCTestCase {
         await server.appendRoute("GET /apps/:bundleId/snapshot", to: SnapshotHandler())
         await server.appendRoute("POST /apps/:bundleId/launch", to: LaunchAppHandler())
         await server.appendRoute("POST /apps/:bundleId/tap", to: TapHandler())
+        await server.appendRoute("POST /apps/:bundleId/longPress", to: LongPressHandler())
         await server.appendRoute("POST /apps/:bundleId/typeText", to: TypeTextHandler())
         await server.appendRoute("POST /apps/:bundleId/drag", to: DragHandler())
         await server.appendRoute("POST /apps/:bundleId/swipe", to: SwipeHandler())

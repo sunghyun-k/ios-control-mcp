@@ -189,6 +189,24 @@ public final class iOSAutomation: @unchecked Sendable {
         try await client.tapAtPoint(x: x, y: y)
     }
 
+    // MARK: - 오래 누르기
+
+    /// label로 요소 오래 누르기
+    public func longPressByLabel(
+        _ label: String,
+        elementType: AXElementType? = nil,
+        duration: Double = 1.0,
+    ) async throws {
+        let client = try getClient()
+        let target = ElementTarget(elementType: elementType, selector: .label(label))
+        try await tryOnForegroundApps(
+            client: client,
+            onAllFailed: LongPressError.elementNotFound(label: label),
+        ) { bundleId in
+            try await client.longPress(bundleId: bundleId, element: target, duration: duration)
+        }
+    }
+
     // MARK: - 텍스트 입력
 
     /// 텍스트 입력
@@ -356,6 +374,10 @@ public final class iOSAutomation: @unchecked Sendable {
     // MARK: - Errors
 
     public enum TapError: Error {
+        case elementNotFound(label: String)
+    }
+
+    public enum LongPressError: Error {
         case elementNotFound(label: String)
     }
 
