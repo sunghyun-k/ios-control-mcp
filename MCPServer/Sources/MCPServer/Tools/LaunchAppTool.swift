@@ -21,6 +21,10 @@ enum LaunchAppTool: MCPToolDefinition {
         let bundleId = try args.string("bundle_id")
 
         try await automation.launchApp(bundleId: bundleId)
-        return [.text("Launched '\(bundleId)'")]
+
+        let message = "Launched '\(bundleId)'"
+        let snapshots = try await automation.snapshot()
+        let snapshotText = formatSnapshot(snapshots)
+        return [.text("\(message)\n\n\(snapshotText)")]
     }
 }

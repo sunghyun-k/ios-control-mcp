@@ -51,6 +51,9 @@ enum TypeTextTool: MCPToolDefinition {
         if submit {
             message += " and submitted"
         }
-        return [.text(message)]
+
+        let snapshots = try await automation.snapshot()
+        let snapshotText = formatSnapshot(snapshots)
+        return [.text("\(message)\n\n\(snapshotText)")]
     }
 }

@@ -122,3 +122,16 @@ extension [String: MCP.Value] {
         self[key]?.boolValue ?? defaultValue
     }
 }
+
+// MARK: - 스냅샷 헬퍼
+
+/// UI 스냅샷을 포맷팅된 문자열로 반환
+func formatSnapshot(_ snapshots: [String: SimpleElement]) -> String {
+    var result = ""
+    for (bundleId, element) in snapshots.sorted(by: { $0.key < $1.key }) {
+        result += "[\(bundleId)]\n"
+        result += element.toYAML()
+        result += "\n\n"
+    }
+    return result.trimmingCharacters(in: .whitespacesAndNewlines)
+}

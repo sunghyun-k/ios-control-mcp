@@ -42,6 +42,9 @@ enum LongPressTool: MCPToolDefinition {
         if let elementType {
             message += " (type: \(elementType.name))"
         }
-        return [.text(message)]
+
+        let snapshots = try await automation.snapshot()
+        let snapshotText = formatSnapshot(snapshots)
+        return [.text("\(message)\n\n\(snapshotText)")]
     }
 }

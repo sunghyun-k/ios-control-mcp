@@ -50,6 +50,10 @@ enum DragTool: MCPToolDefinition {
             sourceElementType: sourceElementType,
             targetElementType: targetElementType,
         )
-        return [.text("Dragged from '\(sourceLabel)' to '\(targetLabel)'")]
+
+        let message = "Dragged from '\(sourceLabel)' to '\(targetLabel)'"
+        let snapshots = try await automation.snapshot()
+        let snapshotText = formatSnapshot(snapshots)
+        return [.text("\(message)\n\n\(snapshotText)")]
     }
 }
